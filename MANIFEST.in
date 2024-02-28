@@ -1,0 +1,16 @@
+# The MANIFEST.in file is used by setuptools in Python to include additional files
+# in the distribution package that are not automatically included.
+# For example, you might have some data files in a 'data' directory that need to be
+# included in the package. You can use the 'include' directive in the MANIFEST.in file
+# to specify these files.
+# The 'recursive-include' directive tells setuptools to include all files under the
+# specified directory and its subdirectories. The 'exclude' directive tells setuptools
+# to exclude the specified files from the distribution package.
+
+recursive-include pybind11 *
+recursive-include SigMF *
+include main.cpp
+recursive-include src *
+include MANIFEST.in
+include pyproject.toml
+include CMakeLists.txt

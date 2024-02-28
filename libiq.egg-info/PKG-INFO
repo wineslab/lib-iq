@@ -1,0 +1,9 @@
+Metadata-Version: 2.1
+Name: libiq
+Version: 0.0.1
+Summary: ORan security software
+Author: Filippo / Noemi
+Author-email: olimpieri.1933529@studenti.uniroma1.it / giustini.1933541@studenti.uniroma1.it
+Requires-Python: >=3.9.0
+Provides-Extra: test
+Requires-Dist: pytest>=8.0.1; extra == "test"
