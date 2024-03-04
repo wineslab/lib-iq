@@ -4,3 +4,6 @@
 [submodule "SigMF"]
 	path = SigMF
 	url = https://github.com/deepsig/libsigmf.git
+[submodule "sdr_channelizer"]
+	path = sdr_channelizer
+	url = https://github.com/cwozny/sdr_channelizer.git
