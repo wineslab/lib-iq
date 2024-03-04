@@ -7,3 +7,6 @@
 [submodule "sdr_channelizer"]
 	path = sdr_channelizer
 	url = https://github.com/cwozny/sdr_channelizer.git
+[submodule "ni-rf-data-recording-api"]
+	path = ni-rf-data-recording-api
+	url = https://github.com/genesys-neu/ni-rf-data-recording-api.git
