@@ -6,7 +6,7 @@ requires = [
   "setuptools", # A Python package that provides a lot of code needed to help package Python libraries.
   "wheel",      # A built-package format for Python which provides the bdist_wheel setuptools extension.
   "ninja",      # A small build system with a focus on speed, used here likely in conjunction with cmake.
-  "cmake",      # An open-source, cross-platform family of tools designed to build, test and package software.
+  "cmake >= 3.17.0",      # An open-source, cross-platform family of tools designed to build, test and package software.
   "build",      # A PEP 517 compliant Python build system.
   "pytest",     # A testing framework for Python that allows you to easily create small, simple tests, yet scales to support complex functional testing.
   "pybind11",

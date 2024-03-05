@@ -1,9 +1,14 @@
-#import libiq
-#print(libiq.somma(2, 7))
-import libiq as ors
-output = ors.printName("Kapilan","Ramasamy")
+import libiq
+import os
 
-print(output)
+path = '/root/iq_samples.bin'
 
-print("You are " + str(ors.multiply(10,2)) + " years old!")
-print("In 10 years you will be " + str(ors.divide(90,3)) + " years old!")
+result = libiq.from_bin_to_sigmf(path)
+print(result)
+
+# Verifica se il file esiste prima di chiamare la funzione
+#if os.path.isfile(path):
+#    result = libiq.from_bin_to_sigmf(path)
+#    print("Conversione completata con successo.")
+#else:
+#    print("Il file specificato non esiste o non è accessibile.")

@@ -2177,5 +2177,5 @@ pybind11/tools/pybind11Tools.cmake
 pybind11/tools/pyproject.toml
 pybind11/tools/setup_global.py.in
 pybind11/tools/setup_main.py.in
-src/calculations.cpp
-src/calculations.h
+src/from_bin_to_sigmf.cpp
+src/from_bin_to_sigmf.h
