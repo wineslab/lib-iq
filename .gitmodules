@@ -10,3 +10,6 @@
 [submodule "ni-rf-data-recording-api"]
 	path = ni-rf-data-recording-api
 	url = https://github.com/genesys-neu/ni-rf-data-recording-api.git
+[submodule "RFDataFactory"]
+	path = RFDataFactory
+	url = https://github.com/genesys-neu/RFDataFactory.git
