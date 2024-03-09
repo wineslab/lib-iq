@@ -129,6 +129,8 @@ class CMakeBuild(build_ext):
         )
 
 # Call the setup function to build and install the Python package
+from setuptools import setup, find_packages
+
 setup(
     # The name of the package
     name="libiq",
@@ -152,4 +154,12 @@ setup(
     extras_require={"test": ["pytest>=8.0.1"]},
     # The Python version(s) required to install the package.
     python_requires=">=3.9.0",
+    # The packages that will be installed
+    install_requires=[
+        'scipy',
+        'tqdm',
+    ],
+    # The Python packages included in the package
+    py_modules=['RFDataFactory.SigMF.sigmf_converter'],
 )
+

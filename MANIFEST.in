@@ -9,6 +9,7 @@
 
 recursive-include pybind11 *
 recursive-include SigMF *
+recursive-include RFDataFactory *
 include main.cpp
 recursive-include src *
 include MANIFEST.in

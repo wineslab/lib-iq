@@ -1,5 +1,13 @@
 #!/bin/bash
 
+if [ -d "../iq_samples_mat" ]; then
+    echo "Rimozione della cartella iq_samples_mat..."
+    rm -rf "../iq_samples_mat"
+else
+    echo "La cartella iq_samples_mat non esiste."
+fi
+
+
 # Rimuovi la cartella dist, se esiste
 if [ -d "dist" ]; then
     echo "Rimozione della cartella dist..."

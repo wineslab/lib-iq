@@ -3,7 +3,7 @@ import os
 
 path = '/root/iq_samples.bin'
 
-result = libiq.from_bin_to_sigmf(path)
+result = libiq.Converter.from_bin_to_sigmf(path)
 print(result)
 
 # Verifica se il file esiste prima di chiamare la funzione

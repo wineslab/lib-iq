@@ -11,6 +11,8 @@ requires = [
   "pytest",     # A testing framework for Python that allows you to easily create small, simple tests, yet scales to support complex functional testing.
   "pybind11",
   "sigmf",
+  "scipy",
+  "tqdm",
 ]
 
 # 'build-backend' is an optional field that specifies the build backend that should be used to build the project.
@@ -28,7 +30,7 @@ build-backend = "setuptools.build_meta"
 files = "setup.py"
 
 # 'python_version' specifies the Python version for type checking.
-python_version = "3.9.10"
+python_version = "3.9.18"
 
 # 'strict' is a flag that enables all optional strictness flags. When set to true, mypy will check your code more strictly.
 strict = true

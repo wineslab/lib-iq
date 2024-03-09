@@ -5,7 +5,7 @@
 #include <iostream>
 
 namespace py = pybind11;
-
+/*
 PYBIND11_MODULE(libiq, m) {
     m.doc() = R"pbdoc(
         Converter
@@ -16,4 +16,8 @@ PYBIND11_MODULE(libiq, m) {
     )pbdoc");
 
     m.attr("__version__") = "dev";
+}
+*/
+PYBIND11_MODULE(libiq, m) {
+    py::class_<Converter>(m, "Converter").def_static("from_bin_to_sigmf", &Converter::from_bin_to_sigmf);
 }
