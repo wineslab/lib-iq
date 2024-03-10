@@ -7,5 +7,6 @@ Author-email: olimpieri.1933529@studenti.uniroma1.it / giustini.1933541@studenti
 Requires-Python: >=3.9.0
 Requires-Dist: scipy
 Requires-Dist: tqdm
+Requires-Dist: matplotlib
 Provides-Extra: test
 Requires-Dist: pytest>=8.0.1; extra == "test"

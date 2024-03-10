@@ -158,6 +158,7 @@ setup(
     install_requires=[
         'scipy',
         'tqdm',
+        'matplotlib'
     ],
     # The Python packages included in the package
     py_modules=['RFDataFactory.SigMF.sigmf_converter'],

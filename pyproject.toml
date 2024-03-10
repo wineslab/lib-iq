@@ -13,6 +13,7 @@ requires = [
   "sigmf",
   "scipy",
   "tqdm",
+  "matplotlib",
 ]
 
 # 'build-backend' is an optional field that specifies the build backend that should be used to build the project.

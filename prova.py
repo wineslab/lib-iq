@@ -1,7 +1,7 @@
 import libiq
 import os
 
-path = '/root/iq_samples.bin'
+path = '/root/uav1_6ft_burst1_001.bin'
 
 result = libiq.Converter.from_bin_to_sigmf(path)
 print(result)
