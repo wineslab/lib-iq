@@ -1,0 +1,27 @@
+{
+    "annotations": [
+        {
+            "core:description": "signal1",
+            "core:freq_lower_edge": 4.4306225441443962E+8,
+            "core:freq_upper_edge": 4.4310625E+8,
+            "core:sample_start": 2.497536E+6,
+            "core:sample_count": 571392
+        },
+        {
+            "core:sample_start": 961536,
+            "core:sample_count": 718848
+        }
+    ],
+    "captures": [
+        {
+            "core:global_index": 0,
+            "core:sample_start": 0
+        }
+    ],
+    "global":{
+        "core:datatype": "ci16_le",
+        "core:description": "minimal sigmf-meta example using only `core` fields",
+        "core:license": "Apache License, Version 2.0",
+        "core:metadata_only": true
+    }
+}
