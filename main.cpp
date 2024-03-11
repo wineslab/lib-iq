@@ -1,7 +1,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/stl/filesystem.h>
-#include "./src/from_bin_to_sigmf.h"
+#include "./src/converter.h"
 #include <iostream>
 
 namespace py = pybind11;
@@ -19,5 +19,7 @@ PYBIND11_MODULE(libiq, m) {
 }
 */
 PYBIND11_MODULE(libiq, m) {
-    py::class_<Converter>(m, "Converter").def_static("from_bin_to_sigmf", &Converter::from_bin_to_sigmf);
+    py::class_<Converter>(m, "Converter")
+        .def_static("from_bin_to_sigmf", &Converter::from_bin_to_sigmf)
+        .def_static("from_bin_to_mat", &Converter::from_bin_to_mat);
 }

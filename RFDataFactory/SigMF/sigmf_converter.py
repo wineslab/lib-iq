@@ -12,7 +12,6 @@ distance_list = ['6ft','9ft','12ft','15ft']
 uav_list = []
 for i in range(len(device_list)):
     uav_list.append('uav'+str(i+1))
-print uav_list
 
 
 cf_dict = {'m1008_6ft':'2476500000', 'm1008_9ft':'2406500000', 'm1008_12ft':'2406500000', 'm1008_15ft':'2406500000', 'm1009_6ft':'2426500000', 'm1009_9ft':'2426500000', 'm1009_12ft':'2426500000', 'm1009_15ft':'2436500000', 'm1007_6ft':'2476500000', 'm1007_9ft':'2476500000', 'm1007_12ft':'2476500000', 'm1007_15ft':'2476500000', 'm1005_6ft':'2406500000', 'm1005_9ft':'2406500000', 'm1005_12ft':'2406500000', 'm1005_15ft':'2406500000', 'm10011_6ft':'2416500000', 'm10011_9ft':'2416500000', 'm10011_12ft':'2416500000', 'm10011_15ft':'2416500000', 'm1001_6ft':'2406500000', 'm1001_9ft':'2406500000', 'm1001_12ft':'2406500000', 'm1001_15ft':'2406500000', 'm10010_6ft':'2406500000', 'm10010_9ft':'2406500000', 'm10010_12ft':'2406500000', 'm10010_15ft':'2416500000'}
@@ -40,16 +39,19 @@ def convert_mat_to_sigmf(sigmf_path, mat_path):
         mat_file_content = loadmat(mat_file)
         seq = mat_file_content['f_sig']
         len_seq=seq.shape[1]
-        binary_array = np.zeros((2*len_seq),dtype=np.float16)
+        binary_array = np.zeros((2*len_seq),dtype=np.float32)
         current_bin_index = 0
-        print seq
+        print(seq)
         #print seq.shape
                         
         #----------------------------------------------------------------------- 
                         
         # convert to bin
+        cou = 0
         for i in range(len_seq):
-      
+            if i % (len_seq // 10) == 0:
+                print(str(cou) + "%")
+                cou += 10
             real_part = np.real(seq[0,i])
             imag_part = np.imag(seq[0,i])
             #print seq[0,i]
@@ -79,7 +81,7 @@ def convert_mat_to_sigmf(sigmf_path, mat_path):
         #create meta data
         my_meta = {
             'global': {
-                'core:datatype': 'cf16_le',         
+                'core:datatype': 'cf32_le',         
                 'core:sample_rate': 10000000,       
                 'core:version': '0.0.1',            
                 'core:total_transmissions': 13893,
@@ -114,43 +116,54 @@ def convert_mat_to_sigmf(sigmf_path, mat_path):
 
         json_filename = mat_filename+'.json'
 
-        with open(os.path.join(sigmf_path,json_filename),'wb') as json_file:
+        with open(os.path.join(sigmf_path,json_filename),'w') as json_file:
             json.dump(my_meta, json_file)
        
        
 
 
 def convert_bin_to_mat(sigmf_path, mat_path):
-
     # if destination directory does not exist, create it
     if not os.path.isdir(mat_path):
         os.mkdir(mat_path)
-    
     bin_json_list = glob.glob(sigmf_path+'*')
-
     for filepath in tqdm(bin_json_list):
         # do this only if you have a .bin file not a .json file
         if filepath.endswith('.bin'):
             # read the .bin file
             with open (filepath,'rb') as handle:
-                iq_seq = np.fromfile(handle, dtype='<f2')    # (f2 => float16)
-            n_samples = iq_seq.shape[0]/2
+                iq_seq = np.fromfile(handle, dtype='<f4')    # (f2 => float16) (f4 => float32)
+            n_samples = iq_seq.shape[0] // 2
             # separate I and Q
-            IQ_data = np.zeros((n_samples,2),dtype=np.float16)
+            IQ_data = np.zeros((n_samples,2),dtype=np.float32)
+            #iq_seq = np.nan_to_num(iq_seq)
             IQ_data[:,0] = iq_seq[range(0, iq_seq.shape[0]-1, 2)]    # load all I-values in dimension 0
             IQ_data[:,1] = iq_seq[range(1, iq_seq.shape[0], 2)]      # ...and Q-values in dimension 1
             # convert to Complex I/Q
-            Complex_IQ = IQ_data[:,0] + 1j*IQ_data[:,1]
+            print("-----inizio-----")
+            num_nan = np.sum(np.isnan(IQ_data[:,0]))
+            num_inf = np.sum(np.isinf(IQ_data[:,0]))
+            num_nan2 = np.sum(np.isnan(IQ_data[:,1]))
+            num_inf2 = np.sum(np.isinf(IQ_data[:,1]))
 
+            print("Number of NaN values: ", num_nan)    #ci sono troppi NaN e rompe la somma successiva
+            print("Number of Inf values: ", num_inf)
+            print("Number of NaN values2: ", num_nan2)    #ci sono troppi NaN e rompe la somma successiva
+            print("Number of Inf values2: ", num_inf2)
+            print("-----fine-----")
+            if np.isnan(IQ_data).any() or np.isinf(IQ_data).any():
+                print("Ci sono valori strani")
+            else:
+                print("Tutto ok")
+                
+            Complex_IQ = IQ_data[:,0] + 1j*IQ_data[:,1]
             # reshape the complex sequence to (1,L)
             Complex_IQ = np.expand_dims(Complex_IQ, axis=0)
 
             # dump the complex sequence into a .mat file
-            filename = filepath.split('/')[-1].strip('.bin')
-            this_mat_file_path = os.path.join(mat_path, filename)
-
+            filename = (filepath.split('/')[-1]).split('.bin')[0]
+            this_mat_file_path = os.path.join(mat_path, filename) + ".mat"
             savemat(this_mat_file_path, {'f_sig':Complex_IQ}) 
-
 
 if __name__ == '__main__':
     

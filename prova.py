@@ -1,9 +1,9 @@
 import libiq
 import os
 
-path = '/root/uav1_6ft_burst1_001.bin'
+path = '/root/libiq-101/uav1_6ft_burst1_001.bin'
 
-result = libiq.Converter.from_bin_to_sigmf(path)
+result = libiq.Converter.from_bin_to_mat(path)
 print(result)
 
 # Verifica se il file esiste prima di chiamare la funzione

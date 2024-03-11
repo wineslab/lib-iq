@@ -8,7 +8,7 @@
 # to exclude the specified files from the distribution package.
 
 recursive-include pybind11 *
-recursive-include SigMF *
+recursive-include libsigmf *
 recursive-include RFDataFactory *
 include main.cpp
 recursive-include src *
