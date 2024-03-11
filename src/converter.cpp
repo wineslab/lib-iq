@@ -42,7 +42,16 @@ public:
     void read(const std::string& filename) {
         std::ifstream file(filename, std::ios::binary);
 
-        // Leggi i dati dal file
+        uint32_t endianness;
+        file.read(reinterpret_cast<char*>(&endianness), sizeof(endianness));
+        if (endianness == 0x00000000) {
+            std::cout << "Reading in big endian file\n";
+        } else if (endianness == 0x01010101) {
+            std::cout << "Reading in little endian file\n";
+        } else {
+            std::cout << "Reading in file with unknown endianness\n";
+        }
+
         file.read(reinterpret_cast<char*>(&linkSpeed), sizeof(linkSpeed));
         file.read(reinterpret_cast<char*>(&fc), sizeof(fc));
         file.read(reinterpret_cast<char*>(&bw), sizeof(bw));
@@ -71,6 +80,18 @@ public:
                 iq.push_back(q);
             }
         }
+
+        std::cout << "endianess: " << endianness << std::endl;
+        std::cout << "Link Speed: " << linkSpeed << std::endl;
+        std::cout << "fc: " << fc << std::endl;
+        std::cout << "bw: " << bw << std::endl;
+        std::cout << "fs: " << fs << std::endl;
+        std::cout << "gain: " << gain << std::endl;
+        std::cout << "Number of Samples: " << numSamples << std::endl;
+        std::cout << "Bit Width: " << bitWidth << std::endl;
+        std::cout << "FPGA Version: " << fpgaVersion << std::endl;
+        std::cout << "Firmware Version: " << fwVersion << std::endl;
+        std::cout << "Sample Start Time: " << sampleStartTime << std::endl;
     }
 };
 

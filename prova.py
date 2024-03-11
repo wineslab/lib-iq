@@ -1,14 +1,10 @@
 import libiq
 import os
+import scipy as sc
 
-path = '/root/libiq-101/uav1_6ft_burst1_001.bin'
+path = '/root/libiq-101/iq_samples/uav1_6ft_burst1_001.bin'
 
 result = libiq.Converter.from_bin_to_mat(path)
 print(result)
 
-# Verifica se il file esiste prima di chiamare la funzione
-#if os.path.isfile(path):
-#    result = libiq.from_bin_to_sigmf(path)
-#    print("Conversione completata con successo.")
-#else:
-#    print("Il file specificato non esiste o non è accessibile.")
+#mat = sc.io.loadmat('/root/libiq-101/iq_samples_mat/uav1_6ft_burst1_001.mat')
