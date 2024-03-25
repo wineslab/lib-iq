@@ -1,140 +1,171 @@
 #include "converter.h"
 
-int Converter::from_bin_to_sigmf(const fd::path& filepath) {
-    std::cout << "Processing file: " << filepath << std::endl;
+int Converter::from_bin_to_mat(const std::string& input_file_path, const std::string& output_file_path) {
+    std::filesystem::path input_filepath = input_file_path;
+
+    std::cout << "Processing file: " << input_filepath << std::endl;
+    std::cout << "from_bin_to_mat" << std::endl;
     
-    if (filepath.extension() != ".iq" && filepath.extension() != ".bin"){
-        std::cerr << "Error: File extension not valid " << filepath << std::endl;
+    if (!std::filesystem::exists(input_filepath)) {
+        std::cerr << "Error: File does not exist in: " << input_filepath << std::endl;
         return -1;
     }
 
-    //py::scoped_interpreter guard{}; // start the interpreter and keep it alive
+    if (input_filepath.extension() != ".iq" && input_filepath.extension() != ".bin"){
+        std::cerr << "Error: File extension not valid, .iq or .bin is required " << input_filepath << std::endl;
+        return -1;
+    }
+    
+    // Apri il file binario in modalità lettura
+    std::ifstream file(input_filepath, std::ios::binary);
+    if (!file) {
+        std::cerr << "Errore nell'apertura del file." << std::endl;
+        return -1;
+    }
 
-    py::module my_module = py::module::import("RFDataFactory.SigMF.sigmf_converter");
-    py::function convert_bin_to_mat = my_module.attr("convert_bin_to_mat");
-    convert_bin_to_mat(std::string(filepath), std::string("/root/libiq-101/iq_samples_mat"));
+    // Leggi i dati dal file
+    std::vector<int16_t> iq_sample; // Utilizza int16_t per interpretare i dati come interi a 16 bit
+    int16_t value;
+    while (file.read(reinterpret_cast<char*>(&value), sizeof(value))) {
+        iq_sample.push_back(value);
+    }
 
-    std::cout << "Arriva2" << std::endl;
+    std::filesystem::path output_dir = std::filesystem::path(output_file_path).parent_path();
+    if (!std::filesystem::exists(output_dir)) {
+        std::filesystem::create_directories(output_dir);
+    }
 
-    py::function convert_mat_to_sigmf = my_module.attr("convert_mat_to_sigmf");
-    convert_mat_to_sigmf(std::string("/root/libiq-101/iq_samples_sigmf/"), std::string("/root/libiq-101/iq_samples_mat/"));
+    mat_t *matfp = Mat_CreateVer(output_file_path.c_str(), NULL, MAT_FT_MAT73);
+    if (matfp == NULL) {
+        std::cout << "Errore nell'apertura del file .mat" << std::endl;
+        return EXIT_FAILURE;
+    }
 
-    std::cout << "Arriva3" << std::endl;
+    size_t dims[2] = {1, 1};
+    size_t dimshw[2] = {1, hw.length() + 1};
+    size_t dimsversion[2] = {1, version.length() + 1};
 
+
+    Mat_VarWrite(matfp, Mat_VarCreate("freq_lower_edge", MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims, &freq_lower_edge, 0), MAT_COMPRESSION_NONE);
+    Mat_VarWrite(matfp, Mat_VarCreate("freq_upper_edge", MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims, &freq_upper_edge, 0), MAT_COMPRESSION_NONE);
+    Mat_VarWrite(matfp, Mat_VarCreate("frequency", MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims, &frequency, 0), MAT_COMPRESSION_NONE);
+    Mat_VarWrite(matfp, Mat_VarCreate("sample_rate", MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims, &sample_rate, 0), MAT_COMPRESSION_NONE);
+    
+    Mat_VarWrite(matfp, Mat_VarCreate("global_index", MAT_C_UINT64, MAT_T_UINT64, 2, dims, &global_index, 0), MAT_COMPRESSION_NONE);
+    Mat_VarWrite(matfp, Mat_VarCreate("sample_start", MAT_C_UINT64, MAT_T_UINT64, 2, dims, &sample_start, 0), MAT_COMPRESSION_NONE);
+
+
+    Mat_VarWrite(matfp, Mat_VarCreate("hw", MAT_C_CHAR, MAT_T_UTF8, 2, dimshw, hw.c_str(), 0), MAT_COMPRESSION_NONE);
+    Mat_VarWrite(matfp, Mat_VarCreate("version", MAT_C_CHAR, MAT_T_UTF8, 2, dimsversion, version.c_str(), 0), MAT_COMPRESSION_NONE);
+
+    Mat_Close(matfp);
     return 0;
 }
 
+void create_sigmf_meta(mat_t *matfp, const std::string& output_file_path){
 
-class IQFile {
-public:
-    uint32_t linkSpeed;
-    double fc;
-    double bw;
-    double fs;
-    double gain;
-    double numSamples;
-    uint32_t bitWidth;
-    std::string fpgaVersion;
-    std::string fwVersion;
-    double sampleStartTime;
-    std::vector<int8_t> iq;
-
-    void read(const std::string& filename) {
-        std::ifstream file(filename, std::ios::binary);
-
-        uint32_t endianness;
-        file.read(reinterpret_cast<char*>(&endianness), sizeof(endianness));
-        if (endianness == 0x00000000) {
-            std::cout << "Reading in big endian file\n";
-        } else if (endianness == 0x01010101) {
-            std::cout << "Reading in little endian file\n";
-        } else {
-            std::cout << "Reading in file with unknown endianness\n";
-        }
-
-        file.read(reinterpret_cast<char*>(&linkSpeed), sizeof(linkSpeed));
-        file.read(reinterpret_cast<char*>(&fc), sizeof(fc));
-        file.read(reinterpret_cast<char*>(&bw), sizeof(bw));
-        file.read(reinterpret_cast<char*>(&fs), sizeof(fs));
-        file.read(reinterpret_cast<char*>(&gain), sizeof(gain));
-        file.read(reinterpret_cast<char*>(&numSamples), sizeof(numSamples));
-        file.read(reinterpret_cast<char*>(&bitWidth), sizeof(bitWidth));
-
-        char fpgaVersionBuffer[32];
-        file.read(fpgaVersionBuffer, sizeof(fpgaVersionBuffer));
-        fpgaVersion = std::string(fpgaVersionBuffer, sizeof(fpgaVersionBuffer));
-
-        char fwVersionBuffer[32];
-        file.read(fwVersionBuffer, sizeof(fwVersionBuffer));
-        fwVersion = std::string(fwVersionBuffer, sizeof(fwVersionBuffer));
-
-        file.read(reinterpret_cast<char*>(&sampleStartTime), sizeof(sampleStartTime));
-
-        // Leggi i dati I/Q
-        while (!file.eof()) {
-            int8_t i, q;
-            file.read(reinterpret_cast<char*>(&i), sizeof(i));
-            file.read(reinterpret_cast<char*>(&q), sizeof(q));
-            if (!file.eof()) {
-                iq.push_back(i);
-                iq.push_back(q);
+    sigmf::SigMF<sigmf::VariadicDataClass<sigmf::core::GlobalT>, sigmf::VariadicDataClass<sigmf::core::CaptureT>, sigmf::VariadicDataClass<sigmf::core::AnnotationT> > sigmf_file;
+    auto new_capture = sigmf::VariadicDataClass<sigmf::core::CaptureT>();
+    auto new_annotation = sigmf::VariadicDataClass<sigmf::core::AnnotationT>();
+    matvar_t* matvar = NULL;
+    while ((matvar = Mat_VarReadNext(matfp)) != NULL) {
+        switch (matvar->class_type) {
+            case MAT_C_DOUBLE: {
+                double *data = static_cast<double*>(matvar->data);
+                if(strcmp(matvar->name, "freq_lower_edge")==0){
+                    new_annotation.access<sigmf::core::AnnotationT>().freq_lower_edge = *data;
+                }
+                if(strcmp(matvar->name, "freq_upper_edge")==0){
+                    new_annotation.access<sigmf::core::AnnotationT>().freq_upper_edge = *data;
+                }
+                if(strcmp(matvar->name, "frequency")==0){
+                    new_capture.access<sigmf::core::CaptureT>().frequency = *data;
+                }
+                if(strcmp(matvar->name, "sample_rate")==0){
+                    sigmf_file.global.access<sigmf::core::GlobalT>().sample_rate = *data;
+                }
+                break;
             }
+            case MAT_C_UINT64: {
+                uint64_t *data = static_cast<uint64_t*>(matvar->data);
+                if(strcmp(matvar->name, "global_index")==0){
+                    new_capture.access<sigmf::core::CaptureT>().global_index = *data;
+                }
+                if(strcmp(matvar->name, "sample_start")==0){
+                    new_capture.access<sigmf::core::CaptureT>().sample_start = *data;
+                }
+                break;
+            }
+            case MAT_C_CHAR: {
+                std::string data(static_cast<char*>(matvar->data), matvar->nbytes);
+                data.erase(std::remove(data.begin(), data.end(), '\0'), data.end());
+                if(strcmp(matvar->name, "hw")==0){
+                    sigmf_file.global.access<sigmf::core::GlobalT>().hw = data;
+                }
+                if(strcmp(matvar->name, "version")==0){
+                    sigmf_file.global.access<sigmf::core::GlobalT>().version = data;
+                }
+                break;
+            }
+            default:
+                fprintf(stderr, "Tipo di dati non gestito\n");
+                break;
         }
-
-        std::cout << "endianess: " << endianness << std::endl;
-        std::cout << "Link Speed: " << linkSpeed << std::endl;
-        std::cout << "fc: " << fc << std::endl;
-        std::cout << "bw: " << bw << std::endl;
-        std::cout << "fs: " << fs << std::endl;
-        std::cout << "gain: " << gain << std::endl;
-        std::cout << "Number of Samples: " << numSamples << std::endl;
-        std::cout << "Bit Width: " << bitWidth << std::endl;
-        std::cout << "FPGA Version: " << fpgaVersion << std::endl;
-        std::cout << "Firmware Version: " << fwVersion << std::endl;
-        std::cout << "Sample Start Time: " << sampleStartTime << std::endl;
+        Mat_VarFree(matvar);
+        matvar = NULL;
     }
-};
 
-void saveData(const std::string& filename, const IQFile& iqFile) {
-    // Apri il file in modalità binaria
-    std::ofstream file(filename, std::ios::binary);
+    sigmf_file.captures.emplace_back(new_capture);
+    sigmf_file.annotations.emplace_back(new_annotation);
 
-    // Scrivi i dati nel file
-    file.write(reinterpret_cast<const char*>(iqFile.iq.data()), iqFile.iq.size());
+    std::stringstream json_output;
+    json_output << json(sigmf_file).dump(4) << std::flush;
+
+    std::ofstream file_out(output_file_path);
+    if (file_out.is_open())
+    {
+        file_out << json_output.str();
+        file_out.close();
+        std::cout << "File saved in: " << output_file_path << std::endl;
+    }
+    else 
+    {
+        std::cout << "Impossibile aprire il file.";
+    }
 }
 
-int Converter::from_bin_to_mat(const fd::path& filepath) {
-    std::cout << "Processing file: " << filepath << std::endl;
-    
-    if (filepath.extension() != ".iq" && filepath.extension() != ".bin"){
-        std::cerr << "Error: File extension not valid " << filepath << std::endl;
+int Converter::from_mat_to_sigmf(const std::string& input_file_path, const std::string& output_file_path) {
+    std::filesystem::path input_filepath = input_file_path;
+
+    std::cout << "processing file at: " << input_filepath << std::endl;
+
+    if (!std::filesystem::exists(input_filepath)) {
+        std::cerr << "Error: File does not exist in: " << input_filepath << std::endl;
         return -1;
     }
 
-    auto now = std::chrono::system_clock::now();
-    std::time_t now_c = std::chrono::system_clock::to_time_t(now);
-    std::cout << std::ctime(&now_c) << " - Clearing everything out\n";
+    if (input_filepath.extension() != ".mat"){
+        std::cerr << "Error: File extension not valid, .mat is required " << input_filepath << std::endl;
+        return -1;
+    }
 
-    std::string outdir = "/root/libiq-101/iq_samples_mat/";
+    // Crea la directory di output se non esiste
+    std::filesystem::path output_dir = std::filesystem::path(output_file_path).parent_path();
+    if (!std::filesystem::exists(output_dir)) {
+        std::filesystem::create_directories(output_dir);
+    }
 
-    // Crea la directory se non esiste
-    std::filesystem::create_directories(outdir);
+    // Apri il file .mat
+    mat_t *matfp = Mat_Open(input_file_path.c_str(), MAT_ACC_RDONLY);
+    if (matfp == NULL) {
+        std::cout << "Errore nell'apertura del file .mat" << std::endl;
+        return EXIT_FAILURE;
+    }
 
-    // Apri il file in lettura
-    IQFile iqFile;
-    iqFile.read(filepath.string());
+    create_sigmf_meta(matfp, output_file_path);
+    std::cout << "Dati SigMF salvati in miofile.sigmf-meta" << std::endl;
 
-    // Calcola la durata
-    double dur = iqFile.iq.size() / iqFile.fs;
-
-    // Salva i dati
-    std::cout << std::ctime(&now_c) << " - Saving I/Q\n";
-    std::string filename = outdir + filepath.stem().string() + ".mat"; // Modifica con il tuo formato di output
-
-    // Utilizza la tua libreria o funzione personalizzata per salvare i dati
-    saveData(filename, iqFile);
-
-    std::cout << std::ctime(&now_c) << " - Done\n";
+    Mat_Close(matfp);
 
     return 0;
 }
