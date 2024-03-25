@@ -1,3 +1,4 @@
-iq_samples/*.bin filter=lfs diff=lfs merge=lfs -text
-iq_samples_mat/*.mat filter=lfs diff=lfs merge=lfs -text
-iq_samples_sigmf/*.bin filter=lfs diff=lfs merge=lfs -text
+examples/iq_samples/*.bin filter=lfs diff=lfs merge=lfs -text
+examples/iq_samples/*.mat filter=lfs diff=lfs merge=lfs -text
+examples/iq_samples_mat/*.mat filter=lfs diff=lfs merge=lfs -text
+examples/iq_samples_sigmf/*.bin filter=lfs diff=lfs merge=lfs -text

@@ -1,7 +1,0 @@
-Changelog - NI RF Data Recording API
-
-======================
-v1.0.0        29.08.22
-======================
-
-- initial release

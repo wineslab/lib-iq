@@ -1,41 +1,65 @@
 #!/bin/bash
 
-if [ -d "./iq_samples_mat" ]; then
+# Rimuovi la cartella iq_samples_mat, se esiste
+if [ -d "./examples/iq_samples_mat" ]; then
     echo "Rimozione della cartella iq_samples_mat..."
-    rm -rf "./iq_samples_mat"
+    rm -rf "./examples/iq_samples_mat"
 else
     echo "La cartella iq_samples_mat non esiste."
 fi
 
-if [ -d "./iq_samples_sigmf" ]; then
+# Rimuovi la cartella iq_samples_sigmf, se esiste
+if [ -d "./examples/iq_samples_sigmf" ]; then
     echo "Rimozione della cartella iq_samples_sigmf..."
-    rm -rf "./iq_samples_sigmf"
+    rm -rf "./examples/iq_samples_sigmf"
 else
     echo "La cartella iq_samples_sigmf non esiste."
 fi
 
-
-# Rimuovi la cartella dist, se esiste
-if [ -d "dist" ]; then
-    echo "Rimozione della cartella dist..."
-    rm -rf dist
+# Rimuovi la cartella build, se esiste
+if [ -d "build" ]; then
+    echo "Rimozione della cartella build..."
+    rm -rf build
 else
-    echo "La cartella dist non esiste."
+    echo "La cartella build non esiste."
 fi
 
-# Rimuovi la cartella libiq.egg-info, se esiste
-if [ -d "libiq.egg-info" ]; then
-    echo "Rimozione della cartella libiq.egg-info..."
-    rm -rf libiq.egg-info
+# Rimuovi il modulo Python compilato, se esiste
+if [ -f "_libiq.cpython-39-x86_64-linux-gnu.so" ]; then
+    echo "Rimozione del modulo Python compilato..."
+    rm "_libiq.cpython-39-x86_64-linux-gnu.so"
 else
-    echo "La cartella libiq.egg-info non esiste."
+    echo "Il modulo Python compilato non esiste."
 fi
 
-# Controlla se il pacchetto libiq è installato
-if pip3 show libiq > /dev/null; then
-    # Se il pacchetto è installato, disinstallalo
-    echo "Il pacchetto libiq è installato. Disinstallazione in corso..."
-    pip3 uninstall libiq -y
-else
-    echo "Il pacchetto libiq non è installato."
-fi
+#!/bin/bash
+
+# Naviga alla directory src
+cd src
+
+# Per ogni file .cxx nella directory corrente
+for cxx_file in *.cxx; do
+    # Se il file è stato generato da SWIG
+    if [[ $cxx_file == *_wrap.cxx ]]; then
+        # Rimuovi il file .cxx
+        echo "Rimozione del file $cxx_file generato da SWIG..."
+        rm "$cxx_file"
+
+        # Rimuovi il corrispondente file .py
+        py_file="${cxx_file%_wrap.cxx}.py"
+        if [ -f "$py_file" ]; then
+            echo "Rimozione del file $py_file generato da SWIG..."
+            rm "$py_file"
+        else
+            echo "Il file $py_file generato da SWIG non esiste."
+        fi
+    fi
+done
+
+# Ritorna alla directory precedente
+cd ..
+cd examples
+echo "Rimozione del file libiq.py generato da SWIG che si trova dentro examples..."
+rm libiq.py
+cd ..
+

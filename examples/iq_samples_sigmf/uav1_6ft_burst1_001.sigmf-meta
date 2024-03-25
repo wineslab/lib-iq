@@ -1,0 +1,20 @@
+{
+    "annotations": [
+        {
+            "core:freq_lower_edge": 213456.0,
+            "core:freq_upper_edge": 3456768.0
+        }
+    ],
+    "captures": [
+        {
+            "core:frequency": 567890.0,
+            "core:global_index": 9999,
+            "core:sample_start": 1
+        }
+    ],
+    "global": {
+        "core:hw": "superpc",
+        "core:sample_rate": 23456.0,
+        "core:version": "1.0.0"
+    }
+}

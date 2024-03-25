@@ -1,0 +1,15 @@
+[submodule "libs/sdr_channelizer"]
+	path = libs/sdr_channelizer
+	url = https://github.com/cwozny/sdr_channelizer.git
+[submodule "libs/RFDataFactory"]
+	path = libs/RFDataFactory
+	url = https://github.com/wineslab/RFDataFactory.git
+[submodule "libs/libsigmf"]
+	path = libs/libsigmf
+	url = https://github.com/deepsig/libsigmf.git
+[submodule "libs/zlib"]
+	path = libs/zlib
+	url = https://github.com/madler/zlib.git
+[submodule "libs/matio"]
+	path = libs/matio
+	url = https://github.com/tbeu/matio.git

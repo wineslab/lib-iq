@@ -1,6 +1,0 @@
-scipy
-tqdm
-matplotlib
-
-[test]
-pytest>=8.0.1
