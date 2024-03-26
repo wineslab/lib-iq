@@ -1,13 +1,13 @@
 from distutils.core import setup, Extension
 
 module = Extension('_libiq',
-                   sources=['src/libiq_wrap.cxx', 'src/converter.cpp'],
+                   sources=['src/libiq_wrap.cxx', 'src/converter.cpp', 'src/analyzer.cpp'],
                    include_dirs=[
                         '/usr/local/include',
                         '/usr/local/include/sigmf',
                         './libs/libsigmf/external/flatbuffers/include',
                         './libs/libsigmf/external/json/include'],
-                   libraries=['matio'],
+                   libraries=['matio', 'fftw3'],
                    library_dirs=['/usr/local/lib']
                    )
 

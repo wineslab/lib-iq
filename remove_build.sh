@@ -8,6 +8,13 @@ else
     echo "La cartella iq_samples_mat non esiste."
 fi
 
+if [ -d "./examples/iq_samples_fourier" ]; then
+    echo "Rimozione della cartella iq_samples_fourier..."
+    rm -rf "./examples/iq_samples_fourier"
+else
+    echo "La cartella iq_samples_fourier non esiste."
+fi
+
 # Rimuovi la cartella iq_samples_sigmf, se esiste
 if [ -d "./examples/iq_samples_sigmf" ]; then
     echo "Rimozione della cartella iq_samples_sigmf..."

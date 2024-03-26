@@ -1,4 +1,6 @@
 import libiq
+
+'''
 input_file_path1 = str('/root/libiq-101/examples/iq_samples/uav1_6ft_burst1_001.bin')
 output_file_path1 = str('/root/libiq-101/examples/iq_samples_mat/uav1_6ft_burst1_001.mat')
 input_file_path2 = str('/root/libiq-101/examples/iq_samples_mat/uav1_6ft_burst1_001.mat')
@@ -17,3 +19,10 @@ converter.version = "1.0.0"
 
 converter.from_bin_to_mat(input_file_path1, output_file_path1)
 converter.from_mat_to_sigmf(input_file_path2, output_file_path2)
+'''
+
+input_file_path = str('/root/libiq-101/examples/iq_samples/uav1_6ft_burst1_001.bin')
+output_file_path = str('/root/libiq-101/examples/iq_samples_fourier/uav1_6ft_burst1_001.txt')
+
+analyzer = libiq.Analyzer()
+analyzer.fast_fourier_transform(input_file_path, output_file_path)
