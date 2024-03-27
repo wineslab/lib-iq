@@ -5,14 +5,16 @@
 #include <vector>
 #include <filesystem>
 #include <fstream>
-#include <fftw3.h>
 #include <string>
+#include <utility>
+#include <cmath>
+#include <fftw3.h>
 
 class Analyzer {
 public:
     Analyzer(){}
-    int fast_fourier_transform(const std::string& input_file_path, const std::string& output_file_path);
-    
+    std::vector<std::vector<double>> fast_fourier_transform(const std::string& input_file_path);
+    std::vector<double> calculatePSD(const std::string& input_file_path, double sampleRate);
 };
 
 #endif // ANALYZER_H
