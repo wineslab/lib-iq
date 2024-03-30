@@ -9,7 +9,6 @@
 %include "stdint.i"
 %include "std_array.i"
 
-
 namespace std {
     %template(DoubleVector) vector<double>;
     %template(VectorOfDoubleVector) vector<vector<double>>;

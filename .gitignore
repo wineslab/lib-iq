@@ -11,3 +11,6 @@
 /examples/iq_samples_sigmf
 /examples/iq_samples_mat
 /examples/libiq.py
+/examples/iq_samples/iq_samples.bin
+/examples/iq_samples/iq_samples2.bin
+/examples/iq_samples/iq_samples_pattern.bin
