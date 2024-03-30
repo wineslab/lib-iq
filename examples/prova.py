@@ -26,14 +26,69 @@ import time
 # Inizia il cronometro
 start_time = time.time()
 
-input_file_path = str('/root/libiq-101/examples/iq_samples/uav1_6ft_burst1_001.bin')
+input_file_path = str('/root/libiq-101/examples/iq_samples/iq_samples.bin')
 
 analyzer = libiq.Analyzer() 
 
 fft = analyzer.fast_fourier_transform(input_file_path) 
+c = 0
+for i in fft:
+    if c <= 1000:
+        print(i)
+        c += 1
+    else:
+        break
 
-for i in range(10):
-    print(fft[i])
+# Ferma il cronometro
+end_time = time.time()
+
+# Calcola il tempo trascorso
+elapsed_time = end_time - start_time
+
+# Stampa il tempo trascorso
+print(f"Il codice ha impiegato {elapsed_time} secondi per essere eseguito.")
+'''
+
+'''
+import time
+# Inizia il cronometro
+start_time = time.time()
+
+input_file_path = str('/root/libiq-101/examples/iq_samples/iq_samples.bin')
+
+analyzer = libiq.Analyzer() 
+
+sample_rate = 1000.0
+psd = analyzer.calculate_PSD(input_file_path, sample_rate)
+
+c = 0
+for i in psd:
+    if c <= 1000:
+        print(i)
+        c += 1
+    else:
+        break
+
+# Ferma il cronometro
+end_time = time.time()
+
+# Calcola il tempo trascorso
+elapsed_time = end_time - start_time
+
+# Stampa il tempo trascorso
+print(f"Il codice ha impiegato {elapsed_time} secondi per essere eseguito.")
+'''
+
+
+'''
+import time
+# Inizia il cronometro
+start_time = time.time()
+
+input_file_path = str('/root/libiq-101/examples/iq_samples/iq_samples.bin')
+
+analyzer = libiq.Analyzer() 
+psd = analyzer.generate_IQ_Scatterplot(input_file_path)
 
 # Ferma il cronometro
 end_time = time.time()
@@ -53,12 +108,28 @@ start_time = time.time()
 input_file_path = str('/root/libiq-101/examples/iq_samples/uav1_6ft_burst1_001.bin')
 
 analyzer = libiq.Analyzer() 
+psd = analyzer.generate_IQ_Spectrogram(input_file_path, 1, 10000)
 
-sample_rate = 1000.0
-psd = analyzer.calculatePSD(input_file_path, sample_rate) 
+# Ferma il cronometro
+end_time = time.time()
 
-for i in range(10):
-    print(psd[i])
+# Calcola il tempo trascorso
+elapsed_time = end_time - start_time
+
+# Stampa il tempo trascorso
+print(f"Il codice ha impiegato {elapsed_time} secondi per essere eseguito.")
+'''
+
+'''
+import time
+# Inizia il cronometro
+start_time = time.time()
+
+input_file_path = str('/root/libiq-101/examples/iq_samples/iq_samples.bin')
+
+analyzer = libiq.Analyzer() 
+psd = analyzer.get_iq_sample(input_file_path)
+print(psd)
 
 # Ferma il cronometro
 end_time = time.time()
