@@ -140,3 +140,25 @@ elapsed_time = end_time - start_time
 # Stampa il tempo trascorso
 print(f"Il codice ha impiegato {elapsed_time} secondi per essere eseguito.")
 '''
+
+
+
+import time
+# Inizia il cronometro
+start_time = time.time()
+
+input_file_path = str('/root/libiq-101/examples/iq_samples/iq_samples_pattern.bin')    #100
+#input_file_path = str('/root/libiq-101/examples/iq_samples/iq_samples.bin')            #10
+#input_file_path = str('/root/libiq-101/examples/iq_samples/iq_samples2.bin')           #10
+
+analyzer = libiq.Analyzer() 
+psd = analyzer.generate_IQ_Scatterplot(input_file_path)
+
+# Ferma il cronometro
+end_time = time.time()
+
+# Calcola il tempo trascorso
+elapsed_time = end_time - start_time
+
+# Stampa il tempo trascorso
+print(f"Il codice ha impiegato {elapsed_time} secondi per essere eseguito.")
