@@ -213,19 +213,32 @@ void Analyzer::generate_IQ_Scatterplot(const std::string& input_file_path) {
     }
 
     // Creazione del plot
-    cv::Mat scatterplot(600, 600, CV_8UC3, cv::Scalar(255, 255, 255)); // Creazione di un'immagine bianca
+    cv::Mat scatterplot(700, 700, CV_8UC3, cv::Scalar(255, 255, 255)); // Creazione di un'immagine bianca più grande
+
+    // Disegno degli assi
+    cv::line(scatterplot, cv::Point(70, 650), cv::Point(650, 650), cv::Scalar(255, 0, 0)); // Asse x
+    cv::line(scatterplot, cv::Point(70, 25), cv::Point(70, 650), cv::Scalar(255, 0, 0)); // Asse y
+
+    // Aggiunta delle etichette sugli assi
+    cv::putText(scatterplot, std::to_string(static_cast<int>(minReal)), cv::Point(70, 670), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 0));
+    cv::putText(scatterplot, std::to_string(static_cast<int>(maxReal)), cv::Point(70 + static_cast<int>((maxReal - minReal) * 550.0 / (maxReal - minReal)), 670), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 0));
+    cv::putText(scatterplot, std::to_string(static_cast<int>(minImag)), cv::Point(50, 650), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 0));
+    cv::putText(scatterplot, std::to_string(static_cast<int>(maxImag)), cv::Point(15, 650 - static_cast<int>((maxImag - minImag) * 550.0 / (maxImag - minImag))), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 0));
 
     // Disegno dei punti sullo scatterplot
     for (const auto& sample : iq_sample) {
-        // Mappatura delle coordinate del sample nel range 0-600 per il plot
-        int x = static_cast<int>((sample.real() - minReal) * 600.0 / (maxReal - minReal)); // Scaling tra minReal e maxReal a 0 e 600
-        int y = static_cast<int>((sample.imag() - minImag) * 600.0 / (maxImag - minImag)); // Scaling tra minImag e maxImag a 0 e 600
+        // Mappatura delle coordinate del sample nel range 50-600 per il plot
+        int x = 70 + static_cast<int>((sample.real() - minReal) * 550.0 / (maxReal - minReal)); // Scaling tra minReal e maxReal a 50 e 600
+        int y = 650 - static_cast<int>((sample.imag() - minImag) * 550.0 / (maxImag - minImag)); // Scaling tra minImag e maxImag a 50 e 600 e inversione dell'asse y
         cv::circle(scatterplot, cv::Point(x, y), 1, cv::Scalar(0, 0, 0), cv::FILLED); // Disegno del punto sullo scatterplot
     }
 
     // Salvataggio del plot
     cv::imwrite("/root/libiq-101/IQ_Scatterplot.png", scatterplot);
+
+
 }
+
 
 void Analyzer::generate_IQ_Spectrogram(const std::string& input_file_path, int overlap, int window_size) {
     std::vector<std::complex<double>> iq_sample = read_iq_sample(input_file_path);
@@ -253,10 +266,13 @@ void Analyzer::generate_IQ_Spectrogram(const std::string& input_file_path, int o
             spectrogram.at<float>(i, j) = 10 * std::log10(magnitude);
         }
     }
-
+    
     cv::Mat img;
     cv::normalize(spectrogram, img, 0, 255, cv::NORM_MINMAX, CV_8U);
     cv::applyColorMap(img, img, cv::COLORMAP_JET);
     cv::convertScaleAbs(img, img, 1.0, 2.0); // Aumenta il contrasto
     cv::imwrite("/root/libiq-101/IQ_Spectogram.png", img);
+
 }
+
+
