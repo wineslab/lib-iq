@@ -219,11 +219,21 @@ void Analyzer::generate_IQ_Scatterplot(const std::string& input_file_path) {
     cv::line(scatterplot, cv::Point(70, 650), cv::Point(650, 650), cv::Scalar(255, 0, 0)); // Asse x
     cv::line(scatterplot, cv::Point(70, 25), cv::Point(70, 650), cv::Scalar(255, 0, 0)); // Asse y
 
+    double midReal1 = minReal + (maxReal - minReal) / 3;
+    double midReal2 = minReal + 2 * (maxReal - minReal) / 3;
+    double midImag1 = minImag + (maxImag - minImag) / 3;
+    double midImag2 = minImag + 2 * (maxImag - minImag) / 3;
+
     // Aggiunta delle etichette sugli assi
     cv::putText(scatterplot, std::to_string(static_cast<int>(minReal)), cv::Point(70, 670), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 0));
     cv::putText(scatterplot, std::to_string(static_cast<int>(maxReal)), cv::Point(70 + static_cast<int>((maxReal - minReal) * 550.0 / (maxReal - minReal)), 670), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 0));
     cv::putText(scatterplot, std::to_string(static_cast<int>(minImag)), cv::Point(50, 650), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 0));
     cv::putText(scatterplot, std::to_string(static_cast<int>(maxImag)), cv::Point(15, 650 - static_cast<int>((maxImag - minImag) * 550.0 / (maxImag - minImag))), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 0));
+
+    cv::putText(scatterplot, std::to_string(static_cast<int>(midReal1)), cv::Point(70 + static_cast<int>((midReal1 - minReal) * 550.0 / (maxReal - minReal)), 670), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 0));
+    cv::putText(scatterplot, std::to_string(static_cast<int>(midReal2)), cv::Point(70 + static_cast<int>((midReal2 - minReal) * 550.0 / (maxReal - minReal)), 670), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 0));
+    cv::putText(scatterplot, std::to_string(static_cast<int>(midImag1)), cv::Point(15, 650 - static_cast<int>((midImag1 - minImag) * 550.0 / (maxImag - minImag))), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 0));
+    cv::putText(scatterplot, std::to_string(static_cast<int>(midImag2)), cv::Point(15, 650 - static_cast<int>((midImag2 - minImag) * 550.0 / (maxImag - minImag))), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 0));
 
     // Disegno dei punti sullo scatterplot
     for (const auto& sample : iq_sample) {
