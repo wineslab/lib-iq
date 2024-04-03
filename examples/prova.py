@@ -1,5 +1,4 @@
 import libiq
-
 '''
 input_file_path1 = str('/root/libiq-101/examples/iq_samples/uav1_6ft_burst1_001.bin')
 output_file_path1 = str('/root/libiq-101/examples/iq_samples_mat/uav1_6ft_burst1_001.mat')
@@ -143,6 +142,8 @@ print(f"Il codice ha impiegato {elapsed_time} secondi per essere eseguito.")
 
 
 
+
+import src_python.spectrogram as sp
 import time
 # Inizia il cronometro
 start_time = time.time()
@@ -150,9 +151,13 @@ start_time = time.time()
 input_file_path = str('/root/libiq-101/examples/iq_samples/iq_samples_pattern.bin')    #100
 #input_file_path = str('/root/libiq-101/examples/iq_samples/iq_samples.bin')            #10
 #input_file_path = str('/root/libiq-101/examples/iq_samples/iq_samples2.bin')           #10
+#input_file_path = str('/root/libiq-101/examples/iq_samples/iq_sample_uint16.bin')           #10
+#input_file_path = str('/root/libiq-101/examples/iq_samples/uav1_6ft_burst1_001.bin')
 
 analyzer = libiq.Analyzer() 
-psd = analyzer.generate_IQ_Scatterplot(input_file_path)
+psd = analyzer.generate_IQ_Spectrogram(input_file_path, 0, 256)
+sample_rate = 20 * 5
+sp.spectrogram(psd, sample_rate)
 
 # Ferma il cronometro
 end_time = time.time()
@@ -162,3 +167,30 @@ elapsed_time = end_time - start_time
 
 # Stampa il tempo trascorso
 print(f"Il codice ha impiegato {elapsed_time} secondi per essere eseguito.")
+
+
+'''
+import src_python.scatterplot as scplt
+import time
+# Inizia il cronometro
+start_time = time.time()
+
+input_file_path = str('/root/libiq-101/examples/iq_samples/iq_samples_pattern.bin')    #100
+#input_file_path = str('/root/libiq-101/examples/iq_samples/iq_samples.bin')            #10
+#input_file_path = str('/root/libiq-101/examples/iq_samples/iq_samples2.bin')           #10
+#input_file_path = str('/root/libiq-101/examples/iq_samples/iq_sample_uint16.bin')           #10
+#input_file_path = str('/root/libiq-101/examples/iq_samples/uav1_6ft_burst1_001.bin')
+
+analyzer = libiq.Analyzer() 
+iq = analyzer.get_iq_sample(input_file_path)
+scplt.scatterplot(iq)
+
+# Ferma il cronometro
+end_time = time.time()
+
+# Calcola il tempo trascorso
+elapsed_time = end_time - start_time
+
+# Stampa il tempo trascorso
+print(f"Il codice ha impiegato {elapsed_time} secondi per essere eseguito.")
+'''

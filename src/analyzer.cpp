@@ -66,6 +66,26 @@ std::vector<std::complex<double>> generateTwoToneSignal(int N, double frequency1
     }
     return iq_sample;
 }
+
+void write_iq_sample_to_file(const std::string& file_path, const std::vector<std::complex<double>>& iq_sample) {
+    std::ofstream file(file_path, std::ios::binary);
+
+    if (!file) {
+        std::cerr << "Unable to open file: " << file_path << std::endl;
+        return;
+    }
+
+    for (const auto& sample : iq_sample) {
+        double real_part = sample.real();
+        double imag_part = sample.imag();
+
+        file.write(reinterpret_cast<const char*>(&real_part), sizeof(double));
+        file.write(reinterpret_cast<const char*>(&imag_part), sizeof(double));
+    }
+
+    file.close();
+}
+
 */
 //////////////////////////////////////////////////////
 
@@ -99,7 +119,6 @@ std::vector<std::complex<double>> read_iq_sample(const std::string& input_file_p
 }
 
 std::vector<std::vector<double>> execute_fft_ctoc(std::vector<std::complex<double>> iq_sample){
-    // Esegui la FFT sui campioni IQ
     int signalSize = iq_sample.size();
     fftw_complex *in = reinterpret_cast<fftw_complex*>(iq_sample.data());
     fftw_complex *out;
@@ -113,8 +132,8 @@ std::vector<std::vector<double>> execute_fft_ctoc(std::vector<std::complex<doubl
     std::vector<std::vector<double>> vec(signalSize, std::vector<double>(2));
 
     for (int i = 0; i < signalSize; ++i) {
-        vec[i][0] = out[i][0];
-        vec[i][1] = out[i][1];
+        vec[i][0] = out[i][0] / signalSize;
+        vec[i][1] = out[i][1] / signalSize;
     }
 
     fftw_free(out);
@@ -161,14 +180,13 @@ std::vector<std::vector<double>> Analyzer::fast_fourier_transform(const std::str
         std::cerr << "Error: File is empty." << std::endl;
         return ris;
     }
-
     std::vector<std::vector<double>> fft = execute_fft_ctoc(iq_sample);
     int fft_size = fft.size();
-    for (int i = 0; i < fft_size; i++) {
+    for (int i = 0; i < fft_size; ++i) {
         double real = fft[i][0];
         double imag = fft[i][1];
-        fft[i][0] = sqrt(real * real + imag * imag);  // Ampiezza
-        fft[i][1] = atan2(imag, real);  // Fase
+        fft[i][0] = real;
+        fft[i][1] = imag;
     }
 
     return fft;
@@ -193,6 +211,7 @@ std::vector<double> Analyzer::calculate_PSD(const std::string& input_file_path, 
     return psd;
 }
 
+/*
 void Analyzer::generate_IQ_Scatterplot(const std::string& input_file_path) {
     std::vector<std::complex<double>> iq_sample = read_iq_sample(input_file_path);
 
@@ -245,44 +264,47 @@ void Analyzer::generate_IQ_Scatterplot(const std::string& input_file_path) {
 
     // Salvataggio del plot
     cv::imwrite("/root/libiq-101/IQ_Scatterplot.png", scatterplot);
-
-
 }
+*/
 
-
-void Analyzer::generate_IQ_Spectrogram(const std::string& input_file_path, int overlap, int window_size) {
+std::vector<std::vector<double>> Analyzer::generate_IQ_Spectrogram(const std::string& input_file_path, int overlap, int window_size) {
     std::vector<std::complex<double>> iq_sample = read_iq_sample(input_file_path);
+    std::vector<std::vector<double>> res;
 
     if (iq_sample.empty()) {
         std::cerr << "Error: File is empty." << std::endl;
-        return;
+        return res;
+    }
+    int iq_sample_size = iq_sample.size();
+    int remainder = iq_sample_size % window_size;
+    int zeros_needed = (remainder > 0) ? window_size - remainder : 0;
+
+    for (int i = 0; i < zeros_needed; ++i) {
+        iq_sample.push_back(std::complex<double>(0, 0));
     }
 
-    int num_windows = iq_sample.size() / window_size;
-    std::cout << iq_sample.size() << " " << num_windows << std::endl;
+    iq_sample_size = iq_sample.size();
 
-    cv::Mat spectrogram(window_size, num_windows, CV_32F);
+    int hop_size = window_size - overlap;
+    int num_windows = 1 + (iq_sample.size() - window_size) / hop_size;
+
+    std::vector<std::vector<double>> spectrogram(num_windows, std::vector<double>(window_size));
 
     for (int i = 0; i < num_windows; ++i) {
-        std::vector<std::complex<double>> iq_sample_window(window_size);
-        for(int j = 0; j < window_size; j++){
-            iq_sample_window[j] = iq_sample[i*window_size + j];
+        int start_index = i * hop_size;
+        int end_index = start_index + window_size;
+        if (end_index > iq_sample_size) {
+            end_index = iq_sample_size;
         }
+        std::vector<std::complex<double>> iq_sample_window(iq_sample.begin() + start_index, iq_sample.begin() + end_index);
 
         std::vector<std::vector<double>> fft_result = execute_fft_ctoc(iq_sample_window);
 
         for (int j = 0; j < window_size; ++j) {
-            float magnitude = std::sqrt(fft_result[j][0] * fft_result[j][0] + fft_result[j][1] * fft_result[j][1]);
-            spectrogram.at<float>(i, j) = 10 * std::log10(magnitude);
+            double magnitude = std::sqrt(fft_result[j][0] * fft_result[j][0] + fft_result[j][1] * fft_result[j][1]);
+            spectrogram[i][j] = 10 * std::log10(magnitude);
         }
     }
     
-    cv::Mat img;
-    cv::normalize(spectrogram, img, 0, 255, cv::NORM_MINMAX, CV_8U);
-    cv::applyColorMap(img, img, cv::COLORMAP_JET);
-    cv::convertScaleAbs(img, img, 1.0, 2.0); // Aumenta il contrasto
-    cv::imwrite("/root/libiq-101/IQ_Spectogram.png", img);
-
+    return spectrogram;
 }
-
-
