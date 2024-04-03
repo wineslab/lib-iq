@@ -5,6 +5,7 @@
 /src/__pycache__
 /src/libiq.py
 
+/src_python/__pycache__
 
 /examples/__pycache__
 /examples/iq_samples_fourier

@@ -36,5 +36,5 @@ setup(name='libiq',
       author="TUO NOME",
       description="""Esempio semplice di swig dalla documentazione""",
       ext_modules=[module],
-      py_modules=["libiq"],
+      py_modules=["libiq", "src_python.spectrogram", "src_python.scatterplot"],
       )
