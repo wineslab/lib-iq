@@ -267,7 +267,7 @@ void Analyzer::generate_IQ_Scatterplot(const std::string& input_file_path) {
 }
 */
 
-std::vector<std::vector<double>> Analyzer::generate_IQ_Spectrogram(const std::string& input_file_path, int overlap, int window_size) {
+std::vector<std::vector<double>> Analyzer::generate_IQ_Spectrogram(const std::string& input_file_path, int overlap, int window_size, double sample_rate) {
     std::vector<std::complex<double>> iq_sample = read_iq_sample(input_file_path);
     std::vector<std::vector<double>> res;
 
@@ -276,14 +276,6 @@ std::vector<std::vector<double>> Analyzer::generate_IQ_Spectrogram(const std::st
         return res;
     }
     int iq_sample_size = iq_sample.size();
-    int remainder = iq_sample_size % window_size;
-    int zeros_needed = (remainder > 0) ? window_size - remainder : 0;
-
-    for (int i = 0; i < zeros_needed; ++i) {
-        iq_sample.push_back(std::complex<double>(0, 0));
-    }
-
-    iq_sample_size = iq_sample.size();
 
     int hop_size = window_size - overlap;
     int num_windows = 1 + (iq_sample.size() - window_size) / hop_size;
@@ -301,8 +293,13 @@ std::vector<std::vector<double>> Analyzer::generate_IQ_Spectrogram(const std::st
         std::vector<std::vector<double>> fft_result = execute_fft_ctoc(iq_sample_window);
 
         for (int j = 0; j < window_size; ++j) {
+            //double magnitude = std::sqrt(fft_result[j][0] * fft_result[j][0] + fft_result[j][1] * fft_result[j][1]);
+            //spectrogram[i][j] = 10 * std::log10(magnitude);
             double magnitude = std::sqrt(fft_result[j][0] * fft_result[j][0] + fft_result[j][1] * fft_result[j][1]);
-            spectrogram[i][j] = 10 * std::log10(magnitude);
+            double power = magnitude * magnitude / iq_sample_size;
+            double power_db_per_rad_sample = 10 * std::log10(power) - 10 * std::log10(2 * M_PI / sample_rate);
+            spectrogram[i][j] = power_db_per_rad_sample;
+
         }
     }
     
