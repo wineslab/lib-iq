@@ -10,7 +10,6 @@
 - **matio**: A library for reading and writing Matlab MAT files.
 - **SWIG (Simplified Wrapper and Interface Generator)**: A software development tool that connects programs written in C and C++ with a variety of high-level programming languages. In `libiq`, we used SWIG to create bindings between the C++ code and Python, although SWIG supports many other languages.
 - **FFTW (Fastest Fourier Transform in the West)**: FFTW is a C subroutine library for computing the discrete Fourier transform (DFT) in one or more dimensions, of arbitrary input size, and of both real and complex data.
-- **OpenCV (Open Source Computer Vision Library)**: OpenCV is a huge open-source library for computer vision, machine learning, and image processing. In libiq library is used to plot graphs.
 
 ## Building the Project
 Building `libiq` is a straightforward process. Here are the steps you need to follow:
@@ -20,7 +19,6 @@ Building `libiq` is a straightforward process. Here are the steps you need to fo
     - **libsigmf**: it is an header only library but you need to build its dependencies following the instructions on [libsigmf's Github page](https://github.com/deepsig/libsigmf)
     - **SWIG**: it can be build following the instructions on [SWIG's Github page](https://github.com/swig/swig)
     - **FFTW**: it can be build following the instructions on [FFTW's Home Page](https://www.fftw.org/)
-    - **OpenCV**: it can be build following the instructions on [OpenCV's Home Page](https://opencv.org/)
 3. Run `./remove_build.sh` to clean up the build directory. This removes all the files from the previous build, ensuring a fresh start.
 4. Execute `./build_auto.sh` to initiate the build process. This script compiles the source code and creates the necessary modules.
 5. Finally, run `./execute_prova.sh` to execute the `prova.py` script located in the `examples/prova.py` directory. This allows you to test the functionality.
@@ -44,6 +42,7 @@ Building `libiq` is a straightforward process. Here are the steps you need to fo
 
 ## Examples
 ```
+import libiq
 converter = libiq.Converter() 
 
 #insert metadata values according to Sigmf standard
@@ -66,6 +65,9 @@ converter.from_mat_to_sigmf(input_file_path2, output_file_path2)
 ```
 
 ```
+import libiq
+import src_python.scatterplot as scplt
+
 #input_file_path is the path to .bin or .iq file
 analyzer = libiq.Analyzer()
 iq = analyzer.get_iq_sample(input_file_path)
@@ -77,9 +79,10 @@ fft_result = analyzer.fast_fourier_transform(input_file_path)
 sample_rate = 1000;
 psd_result = analyzer.calculate_PSD(input_file_path, sample_rate)
 
-analyzer.generate_IQ_Scatterplot(input_file_path)
+iq = analyzer.get_iq_sample(input_file_path)
+scplt.scatterplot(iq)
 
-overlap=1 
-window_size=10000
-analyzer.generate_IQ_Spectrogram(input_file_path, overlap, window_size)
+psd = analyzer.generate_IQ_Spectrogram(input_file_path, 0, 256)
+sample_rate = 20 * 5
+sp.spectrogram(psd, sample_rate)
 ```
