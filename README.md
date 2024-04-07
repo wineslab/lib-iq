@@ -67,6 +67,7 @@ converter.from_mat_to_sigmf(input_file_path2, output_file_path2)
 ```
 import libiq
 import src_python.scatterplot as scplt
+import src_python.spectrogram as sp
 
 #input_file_path is the path to .bin or .iq file
 analyzer = libiq.Analyzer()
