@@ -4,40 +4,6 @@ import numpy as np
 def spectrogram(spectrogram, sample_rate):
     spectrogram = np.array(spectrogram).T
     print(spectrogram.shape)
-
-    num_windows = spectrogram.shape[1]
-    num_freqs = spectrogram.shape[0]
-    freqs = np.arange(num_freqs) * sample_rate / num_freqs
-    freqs = np.round(freqs, 2)
-    y_ticks = np.linspace(0, num_freqs-1, min(num_freqs, 10))
-
-    # Process each window and save it to the file
-    for i in range(num_windows):
-        plt.figure()
-
-        # Set the color scale to have a minimum value of -150 and a maximum value of 100
-        max_power_db = np.max(spectrogram[:, i:i+1])
-        min_power_db = np.min(spectrogram[:, i:i+1])
-        img = plt.imshow(spectrogram[:, i:i+1], aspect='auto', cmap='jet', origin='lower', vmin=-160, vmax=max_power_db)
-
-        # Set the x-axis labels to go from 0 to spectrogram.shape[0]*spectrogram.shape[1]
-        x_ticks = [0]
-        x_labels = [i * spectrogram.shape[0]]
-        plt.xticks(x_ticks, labels=np.round(x_labels).astype(int))
-
-        plt.yticks(y_ticks, labels=np.round(freqs[y_ticks.astype(int)], 2))
-
-        plt.xlabel('Time')
-        plt.ylabel('Frequency (Hz)')
-
-        plt.colorbar(img, label='Power')
-
-        plt.savefig(f"spectrogram_{i}.png")
-        plt.close()
-        
-    '''
-    spectrogram = np.array(spectrogram).T
-    print(spectrogram.shape)
     plt.figure()
 
     # Set the color scale to have a minimum value of -150 and a maximum value of 100
@@ -66,5 +32,5 @@ def spectrogram(spectrogram, sample_rate):
 
     plt.colorbar(img, label='Power')
 
-    plt.savefig("spectrogram.png")
-    '''
+    #plt.savefig("spectrogram.png")
+    plt.show()

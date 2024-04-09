@@ -18,4 +18,5 @@ def scatterplot(iq):
 
     plt.tick_params(colors='white', which='both')
 
-    plt.savefig("scatterplot.png", facecolor='black', dpi=300)
+    #plt.savefig("scatterplot.png", facecolor='black', dpi=300)
+    plt.show()
