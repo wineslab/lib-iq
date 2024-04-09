@@ -1,3 +1,5 @@
+import sys
+sys.path.append('/root/libiq-101')
 import libiq
 '''
 input_file_path1 = str('/root/libiq-101/examples/iq_samples/uav1_6ft_burst1_001.bin')
@@ -53,7 +55,7 @@ import time
 # Inizia il cronometro
 start_time = time.time()
 
-input_file_path = str('/root/libiq-101/examples/iq_samples/iq_samples.bin')
+input_file_path = str('/root/libiq-101/examples/iq_samples/iq_samples_pattern.bin')
 
 analyzer = libiq.Analyzer() 
 
@@ -78,46 +80,6 @@ elapsed_time = end_time - start_time
 print(f"Il codice ha impiegato {elapsed_time} secondi per essere eseguito.")
 '''
 
-
-'''
-import time
-# Inizia il cronometro
-start_time = time.time()
-
-input_file_path = str('/root/libiq-101/examples/iq_samples/iq_samples.bin')
-
-analyzer = libiq.Analyzer() 
-psd = analyzer.generate_IQ_Scatterplot(input_file_path)
-
-# Ferma il cronometro
-end_time = time.time()
-
-# Calcola il tempo trascorso
-elapsed_time = end_time - start_time
-
-# Stampa il tempo trascorso
-print(f"Il codice ha impiegato {elapsed_time} secondi per essere eseguito.")
-'''
-
-'''
-import time
-# Inizia il cronometro
-start_time = time.time()
-
-input_file_path = str('/root/libiq-101/examples/iq_samples/uav1_6ft_burst1_001.bin')
-
-analyzer = libiq.Analyzer() 
-psd = analyzer.generate_IQ_Spectrogram(input_file_path, 1, 10000)
-
-# Ferma il cronometro
-end_time = time.time()
-
-# Calcola il tempo trascorso
-elapsed_time = end_time - start_time
-
-# Stampa il tempo trascorso
-print(f"Il codice ha impiegato {elapsed_time} secondi per essere eseguito.")
-'''
 
 '''
 import time
@@ -155,8 +117,10 @@ input_file_path = str('/root/libiq-101/examples/iq_samples/iq_samples_pattern.bi
 #input_file_path = str('/root/libiq-101/examples/iq_samples/uav1_6ft_burst1_001.bin')
 
 analyzer = libiq.Analyzer() 
-psd = analyzer.generate_IQ_Spectrogram(input_file_path, 0, 256)
+onverlap = 0
+window_size = 256
 sample_rate = 20 * 5
+psd = analyzer.generate_IQ_Spectrogram(input_file_path, onverlap, window_size, sample_rate)
 sp.spectrogram(psd, sample_rate)
 
 # Ferma il cronometro
