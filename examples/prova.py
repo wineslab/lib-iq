@@ -121,10 +121,11 @@ analyzer = libiq.Analyzer()
 onverlap = 0
 window_size = 256
 sample_rate = 1000000
+center_frequency = 1000000000
 psd = analyzer.generate_IQ_Spectrogram(input_file_path, onverlap, window_size, sample_rate)
 middle_time = time.time()
 print(f"Il codice ha impiegato {middle_time - start_time} secondi per leggere l'iq sample e calcolare la fftw.")
-sp.spectrogram(psd, sample_rate)
+sp.spectrogram(psd, sample_rate, center_frequency)
 
 # Ferma il cronometro
 end_time = time.time()

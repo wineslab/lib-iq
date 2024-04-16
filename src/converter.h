@@ -30,13 +30,6 @@ public:
     uint64_t sample_start;
     std::string hw;
     std::string version;
-    //double bw;
-    //double dur;
-    //double fc;
-    //std::string fpgaVersion;
-    //std::string fwVersion;
-    //double linkSpeed;
-    //double sampleStartTime;   
 };
 
 #endif // CONVERTER_H

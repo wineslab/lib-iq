@@ -18,15 +18,13 @@ int Converter::from_bin_to_mat(const std::string& input_file_path, const std::st
         return -1;
     }
     
-    // Apri il file binario in modalità lettura
     std::ifstream file(input_filepath, std::ios::binary);
     if (!file) {
         std::cerr << "Errore nell'apertura del file." << std::endl;
         return -1;
     }
 
-    // Leggi i dati dal file
-    std::vector<int16_t> iq_sample; // Utilizza int16_t per interpretare i dati come interi a 16 bit
+    std::vector<int16_t> iq_sample;
     int16_t value;
     while (file.read(reinterpret_cast<char*>(&value), sizeof(value))) {
         iq_sample.push_back(value);
@@ -151,13 +149,11 @@ int Converter::from_mat_to_sigmf(const std::string& input_file_path, const std::
         return -1;
     }
 
-    // Crea la directory di output se non esiste
     std::filesystem::path output_dir = std::filesystem::path(output_file_path).parent_path();
     if (!std::filesystem::exists(output_dir)) {
         std::filesystem::create_directories(output_dir);
     }
 
-    // Apri il file .mat
     mat_t *matfp = Mat_Open(input_file_path.c_str(), MAT_ACC_RDONLY);
     if (matfp == NULL) {
         std::cout << "Errore nell'apertura del file .mat" << std::endl;
