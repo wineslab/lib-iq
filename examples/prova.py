@@ -110,7 +110,8 @@ import time
 # Inizia il cronometro
 start_time = time.time()
 
-input_file_path = str('/root/libiq-101/examples/iq_samples/iq_samples_pattern.bin')    #100
+input_file_path = str('/root/demo/iq_samples/iq_sample_captured.bin')
+#input_file_path = str('/root/libiq-101/examples/iq_samples/iq_samples_pattern.bin')    #100
 #input_file_path = str('/root/libiq-101/examples/iq_samples/iq_samples.bin')            #10
 #input_file_path = str('/root/libiq-101/examples/iq_samples/iq_samples2.bin')           #10
 #input_file_path = str('/root/libiq-101/examples/iq_samples/iq_sample_uint16.bin')           #10
@@ -119,8 +120,10 @@ input_file_path = str('/root/libiq-101/examples/iq_samples/iq_samples_pattern.bi
 analyzer = libiq.Analyzer() 
 onverlap = 0
 window_size = 256
-sample_rate = 20 * 5
+sample_rate = 1000000
 psd = analyzer.generate_IQ_Spectrogram(input_file_path, onverlap, window_size, sample_rate)
+middle_time = time.time()
+print(f"Il codice ha impiegato {middle_time - start_time} secondi per leggere l'iq sample e calcolare la fftw.")
 sp.spectrogram(psd, sample_rate)
 
 # Ferma il cronometro
