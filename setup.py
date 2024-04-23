@@ -1,4 +1,5 @@
 from distutils.core import setup, Extension
+from distutils.sysconfig import get_python_inc
 
 module = Extension('_libiq',
                    sources=['src/libiq_wrap.cxx', 'src/converter.cpp', 'src/analyzer.cpp'],
@@ -7,6 +8,7 @@ module = Extension('_libiq',
                          '/usr/local/include/sigmf',
                          './libs/libsigmf/external/flatbuffers/include',
                          './libs/libsigmf/external/json/include',
+                         get_python_inc(),
                          ],
                    libraries=[
                          'matio',
