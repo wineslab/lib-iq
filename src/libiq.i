@@ -2,6 +2,9 @@
 %{
 #include "analyzer.h"
 #include "converter.h"
+#include <vector>
+#include <array>
+#include <complex>
 %}
 
 %include "std_string.i"

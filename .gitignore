@@ -1,5 +1,6 @@
 /build
 /_libiq.cpython-39-x86_64-linux-gnu.so
+/_libiq.cpython-310-x86_64-linux-gnu.so
 
 /src/libiq_wrap.cxx
 /src/__pycache__

@@ -66,7 +66,32 @@ done
 # Ritorna alla directory precedente
 cd ..
 cd examples
-echo "Rimozione del file libiq.py generato da SWIG che si trova dentro examples..."
-rm libiq.py
+if [ -f "libiq.py" ]; then
+    echo "Rimozione del file libiq.py generato da SWIG che si trova dentro examples..."
+    rm "libiq.py"
+fi
 cd ..
-
+cd ..
+if [ -d "prove_varie" ]; then
+    cd prove_varie
+    if [ -f "_libiq.cpython-310-x86_64-linux-gnu.so" ]; then
+        rm "_libiq.cpython-310-x86_64-linux-gnu.so"
+    fi
+    if [ -f "libiq.py" ]; then
+        rm "libiq.py"
+    fi
+    cd ..
+fi
+cd ./libiq-101
+cd ..
+if [ -d "demo" ]; then
+    cd demo
+    if [ -f "_libiq.cpython-310-x86_64-linux-gnu.so" ]; then
+        rm "_libiq.cpython-310-x86_64-linux-gnu.so"
+    fi
+    if [ -f "libiq.py" ]; then
+        rm "libiq.py"
+    fi
+    cd ..
+fi
+cd ./libiq-101

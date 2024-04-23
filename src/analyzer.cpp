@@ -22,7 +22,8 @@ std::vector<std::complex<double>> read_iq_sample(const std::string& input_file_p
     }
 
     std::vector<std::complex<double>> iq_samples;
-    uint16_t real, imag;
+    //uint16_t real, imag;
+    float real, imag;
     while (file.read(reinterpret_cast<char*>(&real), sizeof(real)) && file.read(reinterpret_cast<char*>(&imag), sizeof(imag))) {
         iq_samples.emplace_back(static_cast<double>(real), static_cast<double>(imag));
     }
@@ -148,6 +149,57 @@ std::vector<std::vector<double>> Analyzer::generate_IQ_Spectrogram(const std::st
         std::vector<std::vector<double>> fft_result = execute_fft_ctoc(iq_sample_window);
 
         for (int j = 0; j < window_size; ++j) {
+            //double magnitude = std::sqrt(fft_result[j][0] * fft_result[j][0] + fft_result[j][1] * fft_result[j][1]);
+            //spectrogram[i][j] = 10 * std::log10(magnitude);
+            double magnitude = std::sqrt(fft_result[j][0] * fft_result[j][0] + fft_result[j][1] * fft_result[j][1]);
+            double power = magnitude * magnitude / iq_sample_size;
+            double power_db_per_rad_sample = 10 * std::log10(power) - 10 * std::log10(2 * M_PI / sample_rate);
+            spectrogram[i][j] = power_db_per_rad_sample;
+
+        }
+    }
+    
+    return spectrogram;
+}
+
+std::vector<std::complex<double>> convert_to_complex(const std::vector<std::vector<double>>& iq_samples_input) {
+    std::vector<std::complex<double>> iq_sample;
+    for (const auto& pair : iq_samples_input) {
+        if (pair.size() == 2) {
+            iq_sample.emplace_back(pair[0], pair[1]);
+        }
+    }
+    return iq_sample;
+}
+
+std::vector<std::vector<double>> Analyzer::generate_IQ_Spectrogram_live(std::vector<std::vector<double>> iq_samples_input, int overlap, int window_size, double sample_rate) {
+    std::vector<std::complex<double>> iq_sample = convert_to_complex(iq_samples_input);
+    std::vector<std::vector<double>> res;
+
+    if (iq_sample.empty()) {
+        std::cerr << "Error: File is empty." << std::endl;
+        return res;
+    }
+    int iq_sample_size = iq_sample.size();
+
+    int hop_size = window_size - overlap;
+    int num_windows = 1 + (iq_sample.size() - window_size) / hop_size;
+
+    std::vector<std::vector<double>> spectrogram(num_windows, std::vector<double>(window_size));
+
+    for (int i = 0; i < num_windows; ++i) {
+        int start_index = i * hop_size;
+        int end_index = start_index + window_size;
+        if (end_index > iq_sample_size) {
+            end_index = iq_sample_size;
+        }
+        std::vector<std::complex<double>> iq_sample_window(iq_sample.begin() + start_index, iq_sample.begin() + end_index);
+
+        std::vector<std::vector<double>> fft_result = execute_fft_ctoc(iq_sample_window);
+
+        for (int j = 0; j < window_size; ++j) {
+            //double magnitude = std::sqrt(fft_result[j][0] * fft_result[j][0] + fft_result[j][1] * fft_result[j][1]);
+            //spectrogram[i][j] = 10 * std::log10(magnitude);
             double magnitude = std::sqrt(fft_result[j][0] * fft_result[j][0] + fft_result[j][1] * fft_result[j][1]);
             double power = magnitude * magnitude / iq_sample_size;
             double power_db_per_rad_sample = 10 * std::log10(power) - 10 * std::log10(2 * M_PI / sample_rate);
