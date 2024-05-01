@@ -17,12 +17,11 @@ std::vector<std::complex<double>> read_iq_sample(const std::string& input_file_p
 
     std::ifstream file(input_filepath, std::ios::binary);
     if (!file) {
-        std::cerr << "Errore nell'apertura del file." << std::endl;
+        std::cerr << "Error: File cannot be opened" << std::endl;
         return ris;
     }
 
     std::vector<std::complex<double>> iq_samples;
-    //uint16_t real, imag;
     float real, imag;
     while (file.read(reinterpret_cast<char*>(&real), sizeof(real)) && file.read(reinterpret_cast<char*>(&imag), sizeof(imag))) {
         iq_samples.emplace_back(static_cast<double>(real), static_cast<double>(imag));
@@ -149,8 +148,6 @@ std::vector<std::vector<double>> Analyzer::generate_IQ_Spectrogram(const std::st
         std::vector<std::vector<double>> fft_result = execute_fft_ctoc(iq_sample_window);
 
         for (int j = 0; j < window_size; ++j) {
-            //double magnitude = std::sqrt(fft_result[j][0] * fft_result[j][0] + fft_result[j][1] * fft_result[j][1]);
-            //spectrogram[i][j] = 10 * std::log10(magnitude);
             double magnitude = std::sqrt(fft_result[j][0] * fft_result[j][0] + fft_result[j][1] * fft_result[j][1]);
             double power = magnitude * magnitude / iq_sample_size;
             double power_db_per_rad_sample = 10 * std::log10(power) - 10 * std::log10(2 * M_PI / sample_rate);
@@ -198,8 +195,6 @@ std::vector<std::vector<double>> Analyzer::generate_IQ_Spectrogram_live(std::vec
         std::vector<std::vector<double>> fft_result = execute_fft_ctoc(iq_sample_window);
 
         for (int j = 0; j < window_size; ++j) {
-            //double magnitude = std::sqrt(fft_result[j][0] * fft_result[j][0] + fft_result[j][1] * fft_result[j][1]);
-            //spectrogram[i][j] = 10 * std::log10(magnitude);
             double magnitude = std::sqrt(fft_result[j][0] * fft_result[j][0] + fft_result[j][1] * fft_result[j][1]);
             double power = magnitude * magnitude / iq_sample_size;
             double power_db_per_rad_sample = 10 * std::log10(power) - 10 * std::log10(2 * M_PI / sample_rate);

@@ -1,7 +1,7 @@
 import sys
 sys.path.append('/root/libiq-101')
 import libiq
-'''
+
 input_file_path1 = str('/root/libiq-101/examples/iq_samples/uav1_6ft_burst1_001.bin')
 output_file_path1 = str('/root/libiq-101/examples/iq_samples_mat/uav1_6ft_burst1_001.mat')
 input_file_path2 = str('/root/libiq-101/examples/iq_samples_mat/uav1_6ft_burst1_001.mat')
@@ -20,7 +20,7 @@ converter.version = "1.0.0"
 
 converter.from_bin_to_mat(input_file_path1, output_file_path1)
 converter.from_mat_to_sigmf(input_file_path2, output_file_path2)
-'''
+
 
 '''
 import time
@@ -102,9 +102,7 @@ elapsed_time = end_time - start_time
 print(f"Il codice ha impiegato {elapsed_time} secondi per essere eseguito.")
 '''
 
-
-
-
+'''
 import src_python.spectrogram as sp
 import time
 # Inizia il cronometro
@@ -135,7 +133,7 @@ elapsed_time = end_time - start_time
 
 # Stampa il tempo trascorso
 print(f"Il codice ha impiegato {elapsed_time} secondi per essere eseguito.")
-
+'''
 
 '''
 import src_python.scatterplot as scplt
