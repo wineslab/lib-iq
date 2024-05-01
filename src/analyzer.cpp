@@ -17,7 +17,7 @@ std::vector<std::complex<double>> read_iq_sample(const std::string& input_file_p
 
     std::ifstream file(input_filepath, std::ios::binary);
     if (!file) {
-        std::cerr << "Error: File cannot be opened" << std::endl;
+        std::cerr << "Error: File does not exist or cannot be opened" << std::endl;
         return ris;
     }
 
@@ -32,10 +32,9 @@ std::vector<std::complex<double>> read_iq_sample(const std::string& input_file_p
 std::vector<std::vector<double>> execute_fft_ctoc(std::vector<std::complex<double>> iq_sample){
     int signalSize = iq_sample.size();
     fftw_complex *in = reinterpret_cast<fftw_complex*>(iq_sample.data());
-    fftw_complex *out;
-    out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * signalSize);
+    std::vector<fftw_complex> out(signalSize);
 
-    fftw_plan p = fftw_plan_dft_1d(signalSize, in, out, FFTW_FORWARD, FFTW_ESTIMATE_PATIENT);
+    fftw_plan p = fftw_plan_dft_1d(signalSize, in, out.data(), FFTW_FORWARD, FFTW_ESTIMATE_PATIENT);
     fftw_execute(p);
 
     fftw_destroy_plan(p);
@@ -47,7 +46,6 @@ std::vector<std::vector<double>> execute_fft_ctoc(std::vector<std::complex<doubl
         vec[i][1] = out[i][1] / signalSize;
     }
 
-    fftw_free(out);
     return vec;
 }
 
@@ -122,7 +120,7 @@ std::vector<double> Analyzer::calculate_PSD(const std::string& input_file_path, 
     return psd;
 }
 
-std::vector<std::vector<double>> Analyzer::generate_IQ_Spectrogram(const std::string& input_file_path, int overlap, int window_size, double sample_rate) {
+std::vector<std::vector<double>> Analyzer::generate_IQ_Spectrogram_from_file(const std::string& input_file_path, int overlap, int window_size, double sample_rate) {
     std::vector<std::complex<double>> iq_sample = read_iq_sample(input_file_path);
     std::vector<std::vector<double>> res;
 
@@ -169,7 +167,7 @@ std::vector<std::complex<double>> convert_to_complex(const std::vector<std::vect
     return iq_sample;
 }
 
-std::vector<std::vector<double>> Analyzer::generate_IQ_Spectrogram_live(std::vector<std::vector<double>> iq_samples_input, int overlap, int window_size, double sample_rate) {
+std::vector<std::vector<double>> Analyzer::generate_IQ_Spectrogram(std::vector<std::vector<double>> iq_samples_input, int overlap, int window_size, double sample_rate) {
     std::vector<std::complex<double>> iq_sample = convert_to_complex(iq_samples_input);
     std::vector<std::vector<double>> res;
 

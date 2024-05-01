@@ -10,7 +10,6 @@
 #include <cmath>
 #include <fftw3.h>
 #include <complex>
-#include <Python.h>
 
 class Analyzer {
 public:
@@ -65,7 +64,7 @@ public:
     *
     * @return A two-dimensional vector representing the spectrogram. Each element of the vector represents a time window, and contains a vector of powers in dB for each frequency sample.
     */
-    std::vector<std::vector<double>> generate_IQ_Spectrogram(const std::string& input_file_path, int overlap, int windowsize, double sample_rate);
+    std::vector<std::vector<double>> generate_IQ_Spectrogram_from_file(const std::string& input_file_path, int overlap, int windowsize, double sample_rate);
 
     /**
     * @brief Generates a real-time IQ spectrogram.
@@ -81,7 +80,7 @@ public:
     *
     * @return A two-dimensional vector representing the spectrogram. Each element of the vector represents a time window, and contains a vector of powers in dB for each frequency sample.
     */
-    std::vector<std::vector<double>> generate_IQ_Spectrogram_live(std::vector<std::vector<double>> iq_samples_input, int overlap, int window_size, double sample_rate);
+    std::vector<std::vector<double>> generate_IQ_Spectrogram(std::vector<std::vector<double>> iq_samples_input, int overlap, int window_size, double sample_rate);
 
     /**
     * @brief Extracts the real part of IQ samples from a file.
