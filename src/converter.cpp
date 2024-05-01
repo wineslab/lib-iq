@@ -1,7 +1,5 @@
 #include "converter.h"
 
-
-
 int Converter::from_bin_to_mat(const std::string& input_file_path, const std::string& output_file_path) {
     std::filesystem::path input_filepath = input_file_path;
 
@@ -20,7 +18,7 @@ int Converter::from_bin_to_mat(const std::string& input_file_path, const std::st
     
     std::ifstream file(input_filepath, std::ios::binary);
     if (!file) {
-        std::cerr << "Errore nell'apertura del file." << std::endl;
+        std::cerr << "Error: File cannot be opened" << std::endl;
         return -1;
     }
 
@@ -37,8 +35,8 @@ int Converter::from_bin_to_mat(const std::string& input_file_path, const std::st
 
     mat_t *matfp = Mat_CreateVer(output_file_path.c_str(), NULL, MAT_FT_MAT73);
     if (matfp == NULL) {
-        std::cout << "Errore nell'apertura del file .mat" << std::endl;
-        return EXIT_FAILURE;
+        std::cerr << "Error: File .mat cannot be opened" << std::endl;
+        return -1;
     }
 
     size_t dims[2] = {1, 1};
@@ -108,7 +106,7 @@ void create_sigmf_meta(mat_t *matfp, const std::string& output_file_path){
                 break;
             }
             default:
-                fprintf(stderr, "Tipo di dati non gestito\n");
+                std::cerr << "Unhandled data type" << std::endl;
                 break;
         }
         Mat_VarFree(matvar);
@@ -130,7 +128,7 @@ void create_sigmf_meta(mat_t *matfp, const std::string& output_file_path){
     }
     else 
     {
-        std::cout << "Impossibile aprire il file.";
+        std::cerr << "Error: File cannot be opened" << std::endl;
     }
 }
 
@@ -156,12 +154,11 @@ int Converter::from_mat_to_sigmf(const std::string& input_file_path, const std::
 
     mat_t *matfp = Mat_Open(input_file_path.c_str(), MAT_ACC_RDONLY);
     if (matfp == NULL) {
-        std::cout << "Errore nell'apertura del file .mat" << std::endl;
-        return EXIT_FAILURE;
+        std::cout << "Error: File .mat cannot be opened" << std::endl;
+        return -1;
     }
 
     create_sigmf_meta(matfp, output_file_path);
-    std::cout << "Dati SigMF salvati in miofile.sigmf-meta" << std::endl;
 
     Mat_Close(matfp);
 

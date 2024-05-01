@@ -1,14 +1,10 @@
-/build
-/_libiq.cpython-39-x86_64-linux-gnu.so
-/_libiq.cpython-310-x86_64-linux-gnu.so
+/libiq_build
 
 /src/libiq_wrap.cxx
-/src/__pycache__
 /src/libiq.py
 
-/src_python/__pycache__
+**/__pycache__/
 
-/examples/__pycache__
 /examples/iq_samples_fourier
 /examples/iq_samples_sigmf
 /examples/iq_samples_mat
@@ -16,3 +12,4 @@
 /examples/iq_samples/iq_samples.bin
 /examples/iq_samples/iq_samples2.bin
 /examples/iq_samples/iq_samples_pattern.bin
+/examples/_libiq.cpython*
