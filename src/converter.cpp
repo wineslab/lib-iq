@@ -8,23 +8,21 @@ int Converter::from_bin_to_mat(const std::string& input_file_path, const std::st
     
     if (!std::filesystem::exists(input_filepath)) {
         std::cerr << "Error: File does not exist in: " << input_filepath << std::endl;
-        return -1;
+        return EXIT_FAILURE;
     }
 
     if (input_filepath.extension() != ".iq" && input_filepath.extension() != ".bin"){
         std::cerr << "Error: File extension not valid, .iq or .bin is required " << input_filepath << std::endl;
-        return -1;
+        return EXIT_FAILURE;
     }
     
-    // Apri il file binario in modalità lettura
     std::ifstream file(input_filepath, std::ios::binary);
     if (!file) {
-        std::cerr << "Errore nell'apertura del file." << std::endl;
-        return -1;
+        std::cerr << "Error: File cannot be opened" << std::endl;
+        return EXIT_FAILURE;
     }
 
-    // Leggi i dati dal file
-    std::vector<int16_t> iq_sample; // Utilizza int16_t per interpretare i dati come interi a 16 bit
+    std::vector<int16_t> iq_sample;
     int16_t value;
     while (file.read(reinterpret_cast<char*>(&value), sizeof(value))) {
         iq_sample.push_back(value);
@@ -35,9 +33,9 @@ int Converter::from_bin_to_mat(const std::string& input_file_path, const std::st
         std::filesystem::create_directories(output_dir);
     }
 
-    mat_t *matfp = Mat_CreateVer(output_file_path.c_str(), NULL, MAT_FT_MAT73);
-    if (matfp == NULL) {
-        std::cout << "Errore nell'apertura del file .mat" << std::endl;
+    std::shared_ptr<mat_t> matfp(Mat_CreateVer(output_file_path.c_str(), NULL, MAT_FT_MAT73), Mat_Close);
+    if (matfp == nullptr) {
+        std::cerr << "Error: File .mat cannot be opened" << std::endl;
         return EXIT_FAILURE;
     }
 
@@ -46,29 +44,27 @@ int Converter::from_bin_to_mat(const std::string& input_file_path, const std::st
     size_t dimsversion[2] = {1, version.length() + 1};
 
 
-    Mat_VarWrite(matfp, Mat_VarCreate("freq_lower_edge", MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims, &freq_lower_edge, 0), MAT_COMPRESSION_NONE);
-    Mat_VarWrite(matfp, Mat_VarCreate("freq_upper_edge", MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims, &freq_upper_edge, 0), MAT_COMPRESSION_NONE);
-    Mat_VarWrite(matfp, Mat_VarCreate("frequency", MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims, &frequency, 0), MAT_COMPRESSION_NONE);
-    Mat_VarWrite(matfp, Mat_VarCreate("sample_rate", MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims, &sample_rate, 0), MAT_COMPRESSION_NONE);
+    Mat_VarWrite(matfp.get(), Mat_VarCreate("freq_lower_edge", MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims, &freq_lower_edge, 0), MAT_COMPRESSION_NONE);
+    Mat_VarWrite(matfp.get(), Mat_VarCreate("freq_upper_edge", MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims, &freq_upper_edge, 0), MAT_COMPRESSION_NONE);
+    Mat_VarWrite(matfp.get(), Mat_VarCreate("frequency", MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims, &frequency, 0), MAT_COMPRESSION_NONE);
+    Mat_VarWrite(matfp.get(), Mat_VarCreate("sample_rate", MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims, &sample_rate, 0), MAT_COMPRESSION_NONE);
     
-    Mat_VarWrite(matfp, Mat_VarCreate("global_index", MAT_C_UINT64, MAT_T_UINT64, 2, dims, &global_index, 0), MAT_COMPRESSION_NONE);
-    Mat_VarWrite(matfp, Mat_VarCreate("sample_start", MAT_C_UINT64, MAT_T_UINT64, 2, dims, &sample_start, 0), MAT_COMPRESSION_NONE);
+    Mat_VarWrite(matfp.get(), Mat_VarCreate("global_index", MAT_C_UINT64, MAT_T_UINT64, 2, dims, &global_index, 0), MAT_COMPRESSION_NONE);
+    Mat_VarWrite(matfp.get(), Mat_VarCreate("sample_start", MAT_C_UINT64, MAT_T_UINT64, 2, dims, &sample_start, 0), MAT_COMPRESSION_NONE);
 
 
-    Mat_VarWrite(matfp, Mat_VarCreate("hw", MAT_C_CHAR, MAT_T_UTF8, 2, dimshw, hw.c_str(), 0), MAT_COMPRESSION_NONE);
-    Mat_VarWrite(matfp, Mat_VarCreate("version", MAT_C_CHAR, MAT_T_UTF8, 2, dimsversion, version.c_str(), 0), MAT_COMPRESSION_NONE);
+    Mat_VarWrite(matfp.get(), Mat_VarCreate("hw", MAT_C_CHAR, MAT_T_UTF8, 2, dimshw, hw.c_str(), 0), MAT_COMPRESSION_NONE);
+    Mat_VarWrite(matfp.get(), Mat_VarCreate("version", MAT_C_CHAR, MAT_T_UTF8, 2, dimsversion, version.c_str(), 0), MAT_COMPRESSION_NONE);
 
-    Mat_Close(matfp);
-    return 0;
+    return EXIT_SUCCESS;
 }
 
-void create_sigmf_meta(mat_t *matfp, const std::string& output_file_path){
-
+void create_sigmf_meta(std::shared_ptr<mat_t> matfp, const std::string& output_file_path){
     sigmf::SigMF<sigmf::VariadicDataClass<sigmf::core::GlobalT>, sigmf::VariadicDataClass<sigmf::core::CaptureT>, sigmf::VariadicDataClass<sigmf::core::AnnotationT> > sigmf_file;
     auto new_capture = sigmf::VariadicDataClass<sigmf::core::CaptureT>();
     auto new_annotation = sigmf::VariadicDataClass<sigmf::core::AnnotationT>();
-    matvar_t* matvar = NULL;
-    while ((matvar = Mat_VarReadNext(matfp)) != NULL) {
+    std::shared_ptr<matvar_t> matvar = nullptr;
+    while ((matvar = std::shared_ptr<matvar_t>(Mat_VarReadNext(matfp.get()), Mat_VarFree)) != nullptr) {
         switch (matvar->class_type) {
             case MAT_C_DOUBLE: {
                 double *data = static_cast<double*>(matvar->data);
@@ -108,11 +104,10 @@ void create_sigmf_meta(mat_t *matfp, const std::string& output_file_path){
                 break;
             }
             default:
-                fprintf(stderr, "Tipo di dati non gestito\n");
+                std::cerr << "Unhandled data type" << std::endl;
                 break;
         }
-        Mat_VarFree(matvar);
-        matvar = NULL;
+        matvar = nullptr;
     }
 
     sigmf_file.captures.emplace_back(new_capture);
@@ -130,9 +125,10 @@ void create_sigmf_meta(mat_t *matfp, const std::string& output_file_path){
     }
     else 
     {
-        std::cout << "Impossibile aprire il file.";
+        std::cerr << "Error: File cannot be opened" << std::endl;
     }
 }
+
 
 int Converter::from_mat_to_sigmf(const std::string& input_file_path, const std::string& output_file_path) {
     std::filesystem::path input_filepath = input_file_path;
@@ -141,31 +137,26 @@ int Converter::from_mat_to_sigmf(const std::string& input_file_path, const std::
 
     if (!std::filesystem::exists(input_filepath)) {
         std::cerr << "Error: File does not exist in: " << input_filepath << std::endl;
-        return -1;
+        return EXIT_FAILURE;
     }
 
     if (input_filepath.extension() != ".mat"){
         std::cerr << "Error: File extension not valid, .mat is required " << input_filepath << std::endl;
-        return -1;
+        return EXIT_FAILURE;
     }
 
-    // Crea la directory di output se non esiste
     std::filesystem::path output_dir = std::filesystem::path(output_file_path).parent_path();
     if (!std::filesystem::exists(output_dir)) {
         std::filesystem::create_directories(output_dir);
     }
 
-    // Apri il file .mat
-    mat_t *matfp = Mat_Open(input_file_path.c_str(), MAT_ACC_RDONLY);
-    if (matfp == NULL) {
-        std::cout << "Errore nell'apertura del file .mat" << std::endl;
+    std::shared_ptr<mat_t> matfp(Mat_Open(input_file_path.c_str(), MAT_ACC_RDONLY), Mat_Close);
+    if (matfp == nullptr) {
+        std::cerr << "Error opening MAT file " << input_file_path << std::endl;
         return EXIT_FAILURE;
     }
 
     create_sigmf_meta(matfp, output_file_path);
-    std::cout << "Dati SigMF salvati in miofile.sigmf-meta" << std::endl;
 
-    Mat_Close(matfp);
-
-    return 0;
+    return EXIT_SUCCESS;
 }

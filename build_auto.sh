@@ -1,18 +1,21 @@
 #!/bin/bash
 
-# Naviga alla directory src
+mkdir -p libiq_build/build
+
 cd src
-
-# Per ogni file .i nella directory corrente
-#for i in *.i; do
-#    # Esegui il comando swig
-#    swig -c++ -python "$i"
-#done
 swig -c++ -python "libiq.i"
-
-# Ritorna alla directory precedente
 cd ..
-python setup.py build_ext --inplace
+
+python3 setup.py build_ext --build-lib libiq_build --build-temp libiq_build/build
+
 cd src
 cp ./libiq.py ../examples/
+cp ./libiq.py ../libiq_build/
 cd ..
+
+cd libiq_build
+for file in _libiq.cpython*; do
+    if [ -f "$file" ]; then
+        cp "$file" ../examples/
+    fi
+done

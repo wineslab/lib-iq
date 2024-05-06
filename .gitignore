@@ -1,0 +1,14 @@
+/libiq_build
+
+/src/libiq_wrap.cxx
+
+**/__pycache__/
+**/_libiq.cpython*
+**/libiq.py
+
+/examples/iq_samples_fourier
+/examples/iq_samples_sigmf
+/examples/iq_samples_mat
+/examples/iq_samples/*
+
+/examples/demo/iq_samples/*
