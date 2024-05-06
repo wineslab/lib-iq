@@ -5,6 +5,7 @@
 **/__pycache__/
 **/_libiq.cpython*
 **/libiq.py
+**/iq_samples/
 
 /examples/iq_samples_fourier
 /examples/iq_samples_sigmf
