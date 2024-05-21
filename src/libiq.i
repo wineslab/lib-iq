@@ -12,6 +12,7 @@
 %include "stdint.i"
 %include "std_array.i"
 
+// Handle std::vector templates
 namespace std {
     %template(DoubleVector) vector<double>;
     %template(VectorOfDoubleVector) vector<vector<double>>;
@@ -19,5 +20,6 @@ namespace std {
     %template(ComplexVector) vector<array<double, 2>>;
 }
 
-%include "converter.i"
-%include "analyzer.i"
+// Include header files
+%include "converter.h"
+%include "analyzer.h"
