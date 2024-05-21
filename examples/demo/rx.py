@@ -12,9 +12,7 @@ import numpy as np
 spectrogram = None
 img = None
 total_samples = 0
-#spectrogram = Value('d', float('-inf'))  # 'd' indica un double
-#img = Value('d', float('inf'))
-max_value = Value('d', float('-inf'))  # 'd' indica un double
+max_value = Value('d', float('-inf'))
 min_value = Value('d', float('inf'))
 
 def calculate_window_duration_ms(num_samples, num_windows, sample_rate):
@@ -47,7 +45,7 @@ def process_data(data, overlap, window_size, sample_rate):
             max_value.value = max_v
     with min_value.get_lock():
         if min_value.value > min_v and min_v > -40:
-            min_value.value = min_v  # Qui dovrebbe essere min_value, non max_value
+            min_value.value = min_v
     return processed_data
 
 def update_graph(num, data_queue, sample_rate, center_frequency, window_size, spectrogram_size):
@@ -76,13 +74,11 @@ def update_graph(num, data_queue, sample_rate, center_frequency, window_size, sp
             plt.ylabel(f'Frequency ({freq_unit})')
         else:
             spectrogram = np.hstack((spectrogram, np.array(data).T))
-            # Check if the spectrogram size exceeds the limit
             if spectrogram.shape[1] > spectrogram_size:
-                # Remove the first columns
                 spectrogram = spectrogram[:, spectrogram.shape[1] - spectrogram_size:]
             img.set_data(spectrogram)
             img.set_clim(vmin=min_value.value, vmax=max_value.value)
-            img.set_extent([0, spectrogram.shape[1], -sample_rate / 2 + center_frequency, sample_rate / 2 + center_frequency])  # Aggiorna i limiti dell'asse
+            img.set_extent([0, spectrogram.shape[1], -sample_rate / 2 + center_frequency, sample_rate / 2 + center_frequency])
         num_windows = spectrogram.shape[1]
 
         x_tiks_val = total_samples-1

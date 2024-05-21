@@ -1,1 +1,1 @@
-python3 ./examples/prova.py
+python3 ./examples/test.py

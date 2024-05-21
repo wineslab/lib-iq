@@ -20,7 +20,7 @@ def get_frequency_scale(freqs):
 
 def spectrogram(spectrogram, sample_rate, center_frequency):
     spectrogram = np.array(spectrogram).T
-    print(spectrogram.shape)
+    print(f"There will be {spectrogram.shape[1]} windows of size {spectrogram.shape[0]}")
     plt.figure()
 
     max_power_db = np.max(spectrogram)
