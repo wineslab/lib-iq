@@ -67,10 +67,16 @@ sp.spectrogram(fft, sample_rate, center_frequency)
 '''
 
 
-'''
-iq = analyzer.get_iq_samples(input_file_path, data_type)
-scplt.scatterplot(iq)
-'''
+
+diff = 30000
+start = 0
+end = start + diff
+window = 100
+interval = 1
+iq = analyzer.get_iq_samples(input_file_path, start, end, data_type)
+#scplt.scatterplot(iq, grids=True)
+scplt.animated_scatterplot(iq, interval=interval, window=window, grids=True)
+
 
 
 end_time = time.time()
