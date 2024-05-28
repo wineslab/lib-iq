@@ -7,14 +7,25 @@ import time
 
 start_time = time.time()
 
-input_file_path = '/home/user/Desktop/project/libiq/examples/iq_samples/iq_sample_captured2.bin'
+#input_file_path = '/home/user/Desktop/project/libiq/examples/iq_samples/iq_sample_1_UE_LTE_1_parallel_100MB_and_1_triangular_waveform.bin'
+input_file_path = '/home/user/Desktop/project/libiq/examples/iq_samples/iq_sample_1_UE_LTE_10_parallel_100MB_and_1_triangular_waveform.bin'
 analyzer = libiq.Analyzer() 
 data_type = libiq.IQDataType_FLOAT32
 
 onverlap = 0
-window_size = 2**12
+window_size = 2**8
 sample_rate = 1000000
 center_frequency = 1000000000
+
+diff = 10000000 #max value = 2147483647
+start = 0
+end = start + diff
+print(window_size)
+window_size_scatterplot = 100
+interval_update_scatterplot = 10
+data_formats = ['real-imag', 'magnitude-phase']
+data_format = data_formats[1]
+grid = False
 
 
 '''
@@ -58,25 +69,18 @@ print(len(iq_sample))
 '''
 
 
-'''
-iq = analyzer.get_iq_samples(input_file_path, data_type)
+iq = analyzer.get_iq_samples(input_file_path, start, end, data_type)
 fft = analyzer.generate_IQ_Spectrogram(iq, onverlap, window_size, sample_rate)
 middle_time = time.time()
 print(f"The code took {middle_time - start_time} seconds to read iq sample and to calculate fftw.")
 sp.spectrogram(fft, sample_rate, center_frequency)
+
+
 '''
-
-
-
-diff = 30000
-start = 0
-end = start + diff
-window = 100
-interval = 1
 iq = analyzer.get_iq_samples(input_file_path, start, end, data_type)
-#scplt.scatterplot(iq, grids=True)
-scplt.animated_scatterplot(iq, interval=interval, window=window, grids=True)
-
+scplt.scatterplot(iq, data_format, grids=grid)
+#scplt.animated_scatterplot(iq, data_format, interval=interval_update_scatterplot, window=window_size_scatterplot, grids=grid)
+'''
 
 
 end_time = time.time()
