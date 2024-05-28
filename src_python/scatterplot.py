@@ -14,7 +14,7 @@ def process_data(iq_sample, data_format):
         for i in range(len(real)):
             magnitude.append(math.sqrt(real[i]**2 + imag[i]**2))
             phase.append(math.atan2(imag[i], real[i]))
-        return magnitude, phase
+        return phase, magnitude
 
 def animated_scatterplot(iq_sample, data_format, interval=100, window=50, grids=False):
     I_data, Q_data = process_data(iq_sample, data_format)
@@ -46,8 +46,8 @@ def animated_scatterplot(iq_sample, data_format, interval=100, window=50, grids=
         ax.set_ylabel('I_data (1x10⁵)', color='white', labelpad=1)
     elif data_format == 'magnitude-phase':
         ax.set_title('I/Q Scatter Plot (Magnitude-Phase)', color='white', y=1.07)
-        ax.set_xlabel('Magnitude (10⁵)', color='white', labelpad=1)
-        ax.set_ylabel('Phase', color='white', labelpad=1)
+        ax.set_xlabel('Phase', color='white', labelpad=1)
+        ax.set_ylabel('Magnitude', color='white', labelpad=1)
 
     def update(frame):
         if frame < window:
@@ -96,20 +96,20 @@ def animated_scatterplot(iq_sample, data_format, interval=100, window=50, grids=
                     ax.axhline(tick, color='gray', linestyle='--', linewidth=0.5)
 
         elif data_format == 'magnitude-phase':
-            I_max = max(xdata) if max(xdata) > 0 else 1e-5
+            I_max = max(ydata) if max(ydata) > 0 else 1e-5
 
             Q_min, Q_max = -math.pi, math.pi
 
-            ax.set_xlim(0, I_max)
-            ax.set_ylim(Q_min, Q_max)
+            ax.set_ylim(0, I_max)
+            ax.set_xlim(Q_min, Q_max)
 
             I_ticks = np.linspace(0, I_max, 10)
             Q_ticks = np.linspace(Q_min, Q_max, 10)
 
-            ax.set_xticks(I_ticks)
-            ax.set_xticklabels([f'{tick*1e5:.2f}' for tick in I_ticks], color='white')
-            ax.set_yticks(Q_ticks)
-            ax.set_yticklabels([f'{tick:.2f}' for tick in Q_ticks], color='white')
+            ax.set_yticks(I_ticks)
+            ax.set_yticklabels([f'{tick:.2f}' for tick in I_ticks], color='white')
+            ax.set_xticks(Q_ticks)
+            ax.set_xticklabels([f'{tick:.2f}' for tick in Q_ticks], color='white')
 
             if grids:
                 ax.grid(True, color='gray', linestyle='--', linewidth=0.5)
@@ -126,14 +126,16 @@ def animated_scatterplot(iq_sample, data_format, interval=100, window=50, grids=
     plt.show()
 
 def scatterplot(iq, data_format, grids=False):
-    I_data, Q_data = process_data(iq, data_format)
+    a_data, b_data = process_data(iq, data_format)
 
     fig, ax = plt.subplots(dpi=300)
     fig.set_facecolor('black')
-    ax.scatter(I_data, Q_data, s=0.1, c='lime')
+    ax.scatter(a_data, b_data, s=0.1, c='lime')
     ax.set_facecolor('black')
 
     if data_format == 'real-imag':
+        I_data, Q_data = a_data, b_data
+
         I_min, I_max = min(I_data), max(I_data)
         Q_min, Q_max = min(Q_data), max(Q_data)
         I_range = I_max - I_min
@@ -171,19 +173,20 @@ def scatterplot(iq, data_format, grids=False):
         ax.set_ylabel('I_data (1x10⁵)', color='white', labelpad=1)
 
     elif data_format == 'magnitude-phase':
-        I_max = max(I_data) if max(I_data) > 0 else 1e-5
-        Q_min, Q_max = -math.pi, math.pi
+        magnitude_max = max(b_data) if max(b_data) > 0 else 1e-5
+        phase_min, phase_max = -math.pi, math.pi
 
-        ax.set_xlim(0, I_max)
-        ax.set_ylim(Q_min, Q_max)
+        ax.set_ylim(0, magnitude_max)
+        ax.set_xlim(phase_min, phase_max)
 
-        I_ticks = np.linspace(0, I_max, 10)
-        Q_ticks = np.linspace(Q_min, Q_max, 10)
+        I_ticks = np.linspace(0, magnitude_max, 10)
+        Q_ticks = np.linspace(phase_min, phase_max, 10)
 
-        ax.set_xticks(I_ticks)
-        ax.set_xticklabels([f'{tick*1e5:.2f}' for tick in I_ticks], color='white')
-        ax.set_yticks(Q_ticks)
-        ax.set_yticklabels([f'{tick:.2f}' for tick in Q_ticks], color='white')
+        ax.set_yticks(I_ticks)
+        #ax.set_yticklabels([f'{tick*1e5:.2f}' for tick in I_ticks], color='white')
+        ax.set_yticklabels([f'{tick:.2f}' for tick in I_ticks], color='white')
+        ax.set_xticks(Q_ticks)
+        ax.set_xticklabels([f'{tick:.2f}' for tick in Q_ticks], color='white')
 
         if grids:
             ax.grid(True, color='gray', linestyle='--', linewidth=0.5)
@@ -193,8 +196,8 @@ def scatterplot(iq, data_format, grids=False):
                 ax.axhline(tick, color='gray', linestyle='--', linewidth=0.5)
 
         ax.set_title('I/Q Scatter Plot (Magnitude-Phase)', color='white', y=1.07)
-        ax.set_xlabel('Magnitude (10⁵)', color='white', labelpad=1)
-        ax.set_ylabel('Phase', color='white', labelpad=1)
+        ax.set_xlabel('Phase', color='white', labelpad=1)
+        ax.set_ylabel('Magnitude', color='white', labelpad=1)
 
     ax.tick_params(colors='white', which='both')
 

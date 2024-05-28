@@ -7,8 +7,10 @@ import time
 
 start_time = time.time()
 
-#input_file_path = '/home/user/Desktop/project/libiq/examples/iq_samples/iq_sample_1_UE_LTE_1_parallel_100MB_and_1_triangular_waveform.bin'
-input_file_path = '/home/user/Desktop/project/libiq/examples/iq_samples/iq_sample_1_UE_LTE_10_parallel_100MB_and_1_triangular_waveform.bin'
+input_file_path = '/home/user/Desktop/project/libiq/examples/iq_samples/iq_sample_1_UE_LTE_1_parallel_100MB_and_1_triangular_waveform.bin'
+#input_file_path = '/home/user/Desktop/project/libiq/examples/iq_samples/iq_sample_1_UE_LTE_10_parallel_100MB_and_1_triangular_waveform.bin'
+#input_file_path = '/home/user/Desktop/project/libiq/examples/iq_samples/wifi/iq_sample_synclong.bin'
+#input_file_path = '/home/user/Desktop/project/libiq/examples/iq_samples/wifi/iq_sample_usrpsource.bin'
 analyzer = libiq.Analyzer() 
 data_type = libiq.IQDataType_FLOAT32
 
@@ -17,7 +19,7 @@ window_size = 2**8
 sample_rate = 1000000
 center_frequency = 1000000000
 
-diff = 10000000 #max value = 2147483647
+diff = 5000000#10000000 #max value = 2147483647
 start = 0
 end = start + diff
 print(window_size)
@@ -68,13 +70,13 @@ iq_sample = analyzer.get_iq_samples(input_file_path, data_type)
 print(len(iq_sample))
 '''
 
-
+'''
 iq = analyzer.get_iq_samples(input_file_path, start, end, data_type)
 fft = analyzer.generate_IQ_Spectrogram(iq, onverlap, window_size, sample_rate)
 middle_time = time.time()
 print(f"The code took {middle_time - start_time} seconds to read iq sample and to calculate fftw.")
 sp.spectrogram(fft, sample_rate, center_frequency)
-
+'''
 
 '''
 iq = analyzer.get_iq_samples(input_file_path, start, end, data_type)
