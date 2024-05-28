@@ -272,13 +272,15 @@ std::vector<std::vector<double>> Analyzer::get_iq_samples(const std::string& inp
     }
 
     // Validate sample range
-    if (start_sample < 0 || end_sample < 0 || start_sample >= end_sample || start_sample >= static_cast<int>(iq_sample.size())) {
+    if (start_sample < 0 || end_sample <= start_sample || start_sample >= static_cast<int>(iq_sample.size())) {
         std::cerr << "Error: Invalid sample range." << std::endl;
         return result;
     }
 
-    int sample_size = std::min(end_sample, static_cast<int>(iq_sample.size()));
-    for (int i = start_sample; i < sample_size; ++i) {
+    // Adjust end_sample if it exceeds the size of the samples
+    end_sample = std::min(end_sample, static_cast<int>(iq_sample.size()));
+
+    for (int i = start_sample; i < end_sample; ++i) {
         std::vector<double> real_imag;
         real_imag.push_back(iq_sample[i].real());
         real_imag.push_back(iq_sample[i].imag());
@@ -291,13 +293,15 @@ std::vector<std::vector<double>> Analyzer::get_iq_samples(const std::vector<std:
     std::vector<std::vector<double>> result;
 
     // Validate IQ sample data
-    if (iq_samples.empty() || start_sample < 0 || end_sample < 0 || start_sample >= end_sample || start_sample >= static_cast<int>(iq_samples.size())) {
+    if (iq_samples.empty() || start_sample < 0 || end_sample <= start_sample || start_sample >= static_cast<int>(iq_samples.size())) {
         std::cerr << "Error: Invalid sample range or empty input data." << std::endl;
         return result;
     }
 
-    int sample_size = std::min(end_sample, static_cast<int>(iq_samples.size()));
-    for (int i = start_sample; i < sample_size; ++i) {
+    // Adjust end_sample if it exceeds the size of the samples
+    end_sample = std::min(end_sample, static_cast<int>(iq_samples.size()));
+
+    for (int i = start_sample; i < end_sample; ++i) {
         result.push_back(iq_samples[i]);
     }
     return result;
