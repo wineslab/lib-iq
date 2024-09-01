@@ -1,5 +1,16 @@
 import sys
-sys.path.append('/home/user/Desktop/project/libiq')
+
+platform = 'local'
+path = ''
+if platform == 'Docker':
+    path = '/home/user/libiq'
+elif platform == 'Colosseum':
+    path = '/root/libiq'
+elif platform == 'local':
+    path = '/home/user/Desktop/project/libiq'
+
+sys.path.append(path)
+
 import libiq
 import src_python.scatterplot as scplt
 import src_python.spectrogram as sp
@@ -7,19 +18,27 @@ import time
 
 start_time = time.time()
 
-input_file_path = '/home/user/Desktop/project/libiq/examples/iq_samples/iq_sample_1_UE_LTE_1_parallel_100MB_and_1_triangular_waveform.bin'
-#input_file_path = '/home/user/Desktop/project/libiq/examples/iq_samples/iq_sample_1_UE_LTE_10_parallel_100MB_and_1_triangular_waveform.bin'
-#input_file_path = '/home/user/Desktop/project/libiq/examples/iq_samples/wifi/iq_sample_synclong.bin'
-#input_file_path = '/home/user/Desktop/project/libiq/examples/iq_samples/wifi/iq_sample_usrpsource.bin'
+if platform == 'Docker':
+    capture_path = '/home/user/iq_samples'
+elif platform == 'Colosseum':
+    capture_path = '/iq_samples'
+elif platform == 'local':
+    capture_path = '/home/user/Desktop/project/iq_samples'
+
+input_file_path = f'{capture_path}/WIFI/wifi_0.bin'
+#input_file_path = f'{capture_path}/5G/5G_0.bin'
+#input_file_path = f'{capture_path}/WIFI/wifi_0.bin'
+#input_file_path = f'{capture_path}/Triangular/triangular_0.bin'
+
 analyzer = libiq.Analyzer() 
 data_type = libiq.IQDataType_FLOAT32
 
 onverlap = 0
-window_size = 2**8
-sample_rate = 1000000
+window_size = 256
+sample_rate = 20000000
 center_frequency = 1000000000
 
-diff = 5000000#10000000 #max value = 2147483647
+diff = 1000#10000000 #max value = 2147483647
 start = 0
 end = start + diff
 print(window_size)
@@ -31,10 +50,10 @@ grid = False
 
 
 '''
-input_file_path1 = str('/root/libiq-101/examples/iq_samples/uav1_6ft_burst1_001.bin')
-output_file_path1 = str('/root/libiq-101/examples/iq_samples_mat/uav1_6ft_burst1_001.mat')
-input_file_path2 = str('/root/libiq-101/examples/iq_samples_mat/uav1_6ft_burst1_001.mat')
-output_file_path2 = str('/root/libiq-101/examples/iq_samples_sigmf/uav1_6ft_burst1_001.sigmf-meta')
+input_file_path1 = str(f'{capture_path}/WIFI/wifi_0.bin')
+output_file_path1 = str(f'{capture_path}/WIFI/wifi_0.mat')
+input_file_path2 = str(f'{capture_path}/WIFI/wifi_0.mat')
+output_file_path2 = str(f'{capture_path}/WIFI/wifi_0.sigmf-meta')
 
 converter = libiq.Converter()
 
@@ -83,7 +102,6 @@ iq = analyzer.get_iq_samples(input_file_path, start, end, data_type)
 scplt.scatterplot(iq, data_format, grids=grid)
 #scplt.animated_scatterplot(iq, data_format, interval=interval_update_scatterplot, window=window_size_scatterplot, grids=grid)
 '''
-
 
 end_time = time.time()
 elapsed_time = end_time - start_time

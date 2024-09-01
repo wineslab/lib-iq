@@ -1,5 +1,16 @@
 import sys
-sys.path.append('/root/libiq-101')
+
+platform = 'Docker'
+path = ''
+if platform == 'Docker':
+    path = '/home/user/libiq'
+elif platform == 'Colosseum':
+    path = '/root/libiq'
+elif platform == 'local':
+    path = '/home/user/Desktop/project/libiq'
+
+sys.path.append(path)
+
 import libiq
 import multiprocessing
 from multiprocessing import Value
