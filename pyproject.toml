@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "libiq"
+version = "0.1.0"
+description = "Unified libiq library including iq_clustering functionalities"
+authors = [
+  { name = "Your Name", email = "you@example.com" }
+]
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.8"
+
+dependencies = [
+    "cython",
+    "scikit-learn",
+    "scipy",
+    "h5py",
+    "tensorflow",
+    "tslearn",
+    "yellowbrick",
+    "pandas",
+    "numpy==1.24.3",
+    "ydata-profiling",
+    "pydot"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

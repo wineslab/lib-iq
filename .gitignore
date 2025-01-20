@@ -1,6 +1,6 @@
 /libiq_build
 
-/src/libiq_wrap.cxx
+*libiq_wrap.cxx
 
 **/__pycache__/
 **/_libiq.cpython*
@@ -13,3 +13,13 @@
 /examples/iq_samples/*
 
 /examples/demo/iq_samples/*
+
+*venv*
+libs/*
+src/libiq.egg-info
+*libiq_wrapped_wrap.cpp
+src/libiq/_libiqwrapped.cpython-310-x86_64-linux-gnu.so
+src/libiq/libiqwrapped.py
+examples/test_results
+build/lib.linux-x86_64-cpython-310/libiq/_libiqwrapped.cpython-310-x86_64-linux-gnu.so
+build/*

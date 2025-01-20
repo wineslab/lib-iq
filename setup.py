@@ -1,24 +1,41 @@
-from setuptools import setup, Extension
+from setuptools import setup, Extension, find_packages
+from setuptools.command.build_ext import build_ext
+import os
 
-module = Extension('_libiq',
-                   sources=['src/libiq_wrap.cxx', 'src/converter.cpp', 'src/analyzer.cpp'],
-                   include_dirs=[
-                         '/usr/local/include',
-                         '/usr/local/include/sigmf',
-                         './libs/libsigmf/external/flatbuffers/include',
-                         './libs/libsigmf/external/json/include',
-                         ],
-                   libraries=[
-                         'matio',
-                         'fftw3'
-                         ],
-                   library_dirs=['/usr/local/lib']
-                   )
+class CustomBuildExt(build_ext):
+    def run(self):
+        super().run()
 
-setup(name='libiq',
-      version='0.1',
-      author="TUO NOME",
-      description="""Esempio semplice di swig dalla documentazione""",
-      ext_modules=[module],
-      py_modules=["libiq", "src_python.spectrogram", "src_python.scatterplot"],
-      )
+module = Extension(
+    'libiq._libiqwrapped',  # NB: "libiqwrapped" senza underscore iniziale
+    sources=[
+        "src/libiq_swig/libiq_wrapped.i",
+        "src/libiq_swig/converter.cpp",
+        "src/libiq_swig/analyzer.cpp"
+    ],
+    swig_opts=['-c++', '-python', '-outdir', 'src/libiq'],  # vedi nota sotto
+    include_dirs=[
+        "/usr/local/include",
+        "/usr/local/include/sigmf",
+        "./libs/libsigmf/external/flatbuffers/include",
+        "./libs/libsigmf/external/json/include",
+        "src/libiq_swig"
+    ],
+    # Aggiungiamo "fftw3_threads" per usare la versione multi-thread di FFTW
+    libraries=["matio", "fftw3", "fftw3_threads"],
+    library_dirs=["/usr/local/lib"],
+    language='c++',
+    # Aggiungiamo le opzioni per OpenMP e ottimizzazione
+    extra_compile_args=['-fopenmp', '-O2', '-std=c++17'],
+    extra_link_args=['-fopenmp']
+)
+
+setup(
+    name='libiq',
+    version='0.1.0',
+    packages=find_packages(where='src'),
+    package_dir={'': 'src'},
+    ext_modules=[module],
+    cmdclass={'build_ext': CustomBuildExt},
+    zip_safe=False,
+)
