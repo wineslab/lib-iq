@@ -20,6 +20,8 @@ src/libiq.egg-info
 *libiq_wrapped_wrap.cpp
 src/libiq/_libiqwrapped.cpython-310-x86_64-linux-gnu.so
 src/libiq/libiqwrapped.py
-examples/test_results
+examples/test_results/iq_samples
+examples/test_results/plots
+
 build/lib.linux-x86_64-cpython-310/libiq/_libiqwrapped.cpython-310-x86_64-linux-gnu.so
 build/*
