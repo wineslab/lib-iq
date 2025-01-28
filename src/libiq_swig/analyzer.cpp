@@ -1,12 +1,5 @@
 #include "analyzer.h"
 
-/**
- * @brief Template function to read IQ samples from file in a single block to improve performance.
- *
- * @tparam T float or double
- * @param input_file_path Path to the IQ file
- * @return std::vector<std::complex<double>> containing the IQ data
- */
 template <typename T>
 std::vector<std::complex<double>> read_iq_sample_block(const std::string& input_file_path) {
     std::filesystem::path input_filepath = input_file_path;
@@ -26,8 +19,8 @@ std::vector<std::complex<double>> read_iq_sample_block(const std::string& input_
 
     // Determine file size
     std::uintmax_t file_size = std::filesystem::file_size(input_filepath);
-    if (file_size < sizeof(T) * 2) {
-        std::cerr << "Error: File is too small to contain IQ data." << std::endl;
+    if (file_size % (2 * sizeof(T)) != 0) {
+        std::cerr << "Error: File size is not aligned with the expected data type size." << std::endl;
         return iq_samples;
     }
 
@@ -47,7 +40,7 @@ std::vector<std::complex<double>> read_iq_sample_block(const std::string& input_
     std::vector<T> buffer(num_complex_samples * 2);
     file.read(reinterpret_cast<char*>(buffer.data()), buffer.size() * sizeof(T));
 
-    // If we didn't read the expected amount of data, return an empty vector
+    // Check read size
     if (static_cast<std::size_t>(file.gcount()) != buffer.size() * sizeof(T)) {
         std::cerr << "Error: Unexpected file read size. Possibly corrupted file or read error." << std::endl;
         iq_samples.clear();
@@ -65,6 +58,7 @@ std::vector<std::complex<double>> read_iq_sample_block(const std::string& input_
     return iq_samples;
 }
 
+
 /**
  * @brief Private method of Analyzer to read IQ samples, dispatching to the specialized function.
  */
@@ -73,6 +67,8 @@ std::vector<std::complex<double>> Analyzer::read_iq_samples(const std::string& i
         return read_iq_sample_block<float>(input_file_path);
     } else if (data_type == IQDataType::FLOAT64) {
         return read_iq_sample_block<double>(input_file_path);
+    } else if (data_type == IQDataType::INT16) {
+        return read_iq_sample_block<std::int16_t>(input_file_path);
     }
     std::cerr << "Error: Invalid data type specified." << std::endl;
     return {};
@@ -103,23 +99,17 @@ static std::vector<std::vector<double>> execute_fft_ctoc(std::vector<std::comple
         return {};
     }
 
-    // Use the memory of iq_sample as input by reinterpreting it as fftw_complex
     fftw_complex* in = reinterpret_cast<fftw_complex*>(iq_sample.data());
-
-    // Allocate output
     std::vector<fftw_complex> out(signalSize);
 
-    // Create plan
     fftw_plan p = fftw_plan_dft_1d(signalSize, in, out.data(), FFTW_FORWARD, FFTW_ESTIMATE_PATIENT);
     fftw_execute(p);
     fftw_destroy_plan(p);
 
-    // Normalize and store in a 2D vector
     std::vector<std::vector<double>> vec(signalSize, std::vector<double>(2));
-    double norm_factor = 1.0 / signalSize;
     for (int i = 0; i < signalSize; ++i) {
-        vec[i][0] = out[i][0] * norm_factor; // real part
-        vec[i][1] = out[i][1] * norm_factor; // imag part
+        vec[i][0] = out[i][0];
+        vec[i][1] = out[i][1];
     }
     return vec;
 }
@@ -315,11 +305,15 @@ std::vector<std::vector<double>> Analyzer::generate_IQ_Spectrogram(const std::st
         for (int j = 0; j < window_size; ++j) {
             double re = fft_result[j][0];
             double im = fft_result[j][1];
-            double magnitude = std::sqrt(re * re + im * im);
-            double power = (magnitude * magnitude) / iq_sample_size;
-            double power_db_per_rad_sample = 10.0 * std::log10(power)
-                                             - 10.0 * std::log10(2.0 * M_PI / sample_rate);
-            result[i][j] = power_db_per_rad_sample;
+            double magnitude2 = re*re + im*im;
+            // 1) Sostituisci "iq_sample_size" con "window_size"
+            double power = magnitude2 / (double)window_size;
+
+            // 2) Converti in dB senza offset
+            double power_db = 10.0 * std::log10(power + 1e-20);
+
+            result[i][j] = power_db;
+
         }
     }
 

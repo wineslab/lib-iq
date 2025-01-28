@@ -16,7 +16,8 @@
  */
 enum class IQDataType {
     FLOAT32,
-    FLOAT64
+    FLOAT64, 
+    INT16
 };
 
 class Analyzer {

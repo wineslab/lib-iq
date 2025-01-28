@@ -284,3 +284,5 @@ else
     echo "Installing GNURadio..."
     sudo apt install gnuradio -y || { echo "Errore durante l'installazione di GNURadio."; exit 1; }
 fi
+
+sudo ldconfig
