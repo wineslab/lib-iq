@@ -33,14 +33,14 @@ def main():
     for files in [200]:
         for n_samples in [1000]:
             
-            create_dataset_from_bin(FILES, files, OUTPUT_PATH, f"{COMBINED_CSV_FILE_PATH}combined_output.csv", n_samples)
-            noise_detector(f"{COMBINED_CSV_FILE_PATH}combined_output.csv", f"{ORIGINAL_COMBINED_CSV_FILE_PATH}combined_output_original.csv")
+#            create_dataset_from_bin(FILES, files, OUTPUT_PATH, f"{COMBINED_CSV_FILE_PATH}combined_output.csv", n_samples)
+#            noise_detector(f"{COMBINED_CSV_FILE_PATH}combined_output.csv", f"{ORIGINAL_COMBINED_CSV_FILE_PATH}combined_output_original.csv")
 
-            x_train, x_test, y_train, y_test = preprocess_data(f"{COMBINED_CSV_FILE_PATH}combined_output.csv", TEST_SIZE, RANDOM_STATE, REPORT_PATH, mode=MODE, reports=REPORTS)
+#            x_train, x_test, y_train, y_test = preprocess_data(f"{COMBINED_CSV_FILE_PATH}combined_output.csv", TEST_SIZE, RANDOM_STATE, REPORT_PATH, mode=MODE, reports=REPORTS)
 
-            custom_cnn.cnn_train(x_train, y_train)
+#            custom_cnn.cnn_train(x_train, y_train)
 
-            create_dataset_from_bin(FILES_TO_LABEL , 200, OUTPUT_PATH_TO_LABEL, f"{COMBINED_CSV_FILE_PATH_TO_LABEL}combined_output.csv", n_samples)
+            create_dataset_from_bin(FILES_TO_LABEL , 1, OUTPUT_PATH_TO_LABEL, f"{COMBINED_CSV_FILE_PATH_TO_LABEL}combined_output.csv", n_samples)
             noise_detector(f"{COMBINED_CSV_FILE_PATH_TO_LABEL}combined_output.csv", f"{ORIGINAL_COMBINED_CSV_FILE_PATH_TO_LABEL}combined_output_original.csv")
 
             custom_cnn.cnn_test(f"{COMBINED_CSV_FILE_PATH_TO_LABEL}combined_output.csv", n_samples)
@@ -55,10 +55,10 @@ def main():
             elif MODE == 'all':
                 y_pred_train = None
                 y_pred_test = None
-                y_pred_train = k_mean_dba_magnitude_train(np.array(x_train['Magnitude'].tolist()), y_train, CLUSTER_MODEL_PATH, RANDOM_STATE, N_JOBS, grid_search=GRID_SEARCH, plots=PLOTS)
-                y_pred_test = k_mean_dba_magnitude_test(np.array(x_test['Magnitude'].tolist()), y_test, CLUSTER_MODEL_PATH, plots=PLOTS)
+#                y_pred_train = k_mean_dba_magnitude_train(np.array(x_train['Magnitude'].tolist()), y_train, CLUSTER_MODEL_PATH, RANDOM_STATE, N_JOBS, grid_search=GRID_SEARCH, plots=PLOTS)
+#                y_pred_test = k_mean_dba_magnitude_test(np.array(x_test['Magnitude'].tolist()), y_test, CLUSTER_MODEL_PATH, plots=PLOTS)
                 
-                y_pred_test = k_mean_dba_magnitude_test_cross_validation(f"{COMBINED_CSV_FILE_PATH_LABELED}combined_output_labeled.csv", CLUSTER_MODEL_PATH, plots=PLOTS)
+#                y_pred_test = k_mean_dba_magnitude_test_cross_validation(f"{COMBINED_CSV_FILE_PATH_LABELED}combined_output_labeled.csv", CLUSTER_MODEL_PATH, plots=PLOTS)
 
                 if y_pred_train is not None and y_pred_test is not None and GRID_SEARCH == False:
                     if SCATTERPLOT_MAGNITUDE == True or SCATTERPLOT_TIME == True:

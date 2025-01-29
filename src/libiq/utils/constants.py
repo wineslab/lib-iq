@@ -7,8 +7,10 @@ if PLATFORM == 'Colosseum':
     CAPTURES_PATH = '/iq_samples/'
     LIBRARY_PATH = '/root/'
 elif PLATFORM == 'local':
-    CAPTURES_PATH = '/home/user/Desktop/iq_samples/'
-    LIBRARY_PATH = '/home/user/Desktop/'
+    CAPTURES_PATH = '/home/wines/spear-dApp/logs/'
+    LIBRARY_PATH = '/home/wines/'
+    #CAPTURES_PATH = '/home/user/Desktop/iq_samples/'
+    #LIBRARY_PATH = '/home/user/Desktop/'
 elif PLATFORM == 'Docker':
     CAPTURES_PATH = '/home/user/iq_samples/'
     LIBRARY_PATH = '/home/user/'
@@ -158,51 +160,10 @@ FILES = {
 }
 
 FILES_TO_LABEL = {
-    #f"{CAPTURES_PATH}Triangular/triangular_0.bin": LABELS['Triangular'],
-    #f"{CAPTURES_PATH}Triangular/triangular_1.bin": LABELS['Triangular'],
-    f"{CAPTURES_PATH}Triangular/triangular_2.bin": LABELS['Triangular'],
-    
-    #f"{CAPTURES_PATH}Triangular/triangular_0.bin": LABELS['Triangular'],
-    #f"{CAPTURES_PATH}Triangular/triangular_1.bin": LABELS['Triangular'],
-    #f"{CAPTURES_PATH}Triangular/triangular_2.bin": LABELS['Triangular'],
-    #f"{CAPTURES_PATH}Triangular/triangular_3.bin": LABELS['Triangular'],
-    #f"{CAPTURES_PATH}Triangular/triangular_4.bin": LABELS['Triangular'],
-    #f"{CAPTURES_PATH}Triangular/triangular_5.bin": LABELS['Triangular'],
-    #f"{CAPTURES_PATH}Triangular/triangular_6.bin": LABELS['Triangular'],
+#    f"{CAPTURES_PATH}Triangular/triangular_2.bin": LABELS['Triangular'],
+#    f"{CAPTURES_PATH}5G/5G_2.bin": LABELS['5G'],
 
-    #f"{CAPTURES_PATH}5G/5G_0.bin": LABELS['5G'],
-    #f"{CAPTURES_PATH}5G/5G_1.bin": LABELS['5G'],
-    f"{CAPTURES_PATH}5G/5G_2.bin": LABELS['5G'],
-    
-    #f"{CAPTURES_PATH}5G/monodirectional/5G_0.bin": LABELS['5G'],
-    #f"{CAPTURES_PATH}5G/monodirectional/5G_1.bin": LABELS['5G'],
-    #f"{CAPTURES_PATH}5G/bidirectional/5G_2.bin": LABELS['5G'],
-    #f"{CAPTURES_PATH}5G/bidirectional/5G_3.bin": LABELS['5G'],
-    #f"{CAPTURES_PATH}5G/bidirectional/5G_4.bin": LABELS['5G'],
-    #f"{CAPTURES_PATH}5G/bidirectional/5G_5.bin": LABELS['5G'],
-    #f"{CAPTURES_PATH}5G/bidirectional/5G_6.bin": LABELS['5G'],
+#    f"{CAPTURES_PATH}Noise/noise_2.bin": LABELS['Noise'],
 
-    #f"{CAPTURES_PATH}Noise/noise_0.bin": LABELS['Noise'],
-    #f"{CAPTURES_PATH}Noise/noise_1.bin": LABELS['Noise'],
-    f"{CAPTURES_PATH}Noise/noise_2.bin": LABELS['Noise'],
-    
-    #f"{CAPTURES_PATH}Noise/noise_0.bin": LABELS['Noise'],
-    #f"{CAPTURES_PATH}Noise/noise_1.bin": LABELS['Noise'],
-    #f"{CAPTURES_PATH}Noise/noise_2.bin": LABELS['Noise'],
-    #f"{CAPTURES_PATH}Noise/noise_3.bin": LABELS['Noise'],
-    #f"{CAPTURES_PATH}Noise/noise_4.bin": LABELS['Noise'],
-    #f"{CAPTURES_PATH}Noise/noise_5.bin": LABELS['Noise'],
-    #f"{CAPTURES_PATH}Noise/noise_6.bin": LABELS['Noise'],
-
-    #f"{CAPTURES_PATH}WIFI/wifi_0.bin": LABELS['WIFI'],
-    #f"{CAPTURES_PATH}WIFI/wifi_1.bin": LABELS['WIFI'],
-    f"{CAPTURES_PATH}WIFI/wifi_2.bin": LABELS['WIFI'],
-    
-    #f"{CAPTURES_PATH}WIFI/wifi_0.bin": LABELS['WIFI'],
-    #f"{CAPTURES_PATH}WIFI/wifi_1.bin": LABELS['WIFI'],
-    #f"{CAPTURES_PATH}WIFI/wifi_2.bin": LABELS['WIFI'],
-    #f"{CAPTURES_PATH}WIFI/wifi_3.bin": LABELS['WIFI'],
-    #f"{CAPTURES_PATH}WIFI/wifi_4.bin": LABELS['WIFI'],
-    #f"{CAPTURES_PATH}WIFI/wifi_5.bin": LABELS['WIFI'],
-    #f"{CAPTURES_PATH}WIFI/wifi_6.bin": LABELS['WIFI'],
+#    f"{CAPTURES_PATH}WIFI/wifi_2.bin": LABELS['WIFI'],
 }

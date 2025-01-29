@@ -381,3 +381,90 @@ def cnn_test(file: str, n_samples: int = None) -> None:
     
     except (ValueError, TypeError) as e:
         raise e
+
+
+def majority_voting(labels: np.ndarray, window_size: int) -> np.ndarray:
+    """
+    Effettua il majority voting su un array di etichette, suddiviso in finestre di dimensione `window_size`.
+    Restituisce un array di etichette (una per finestra).
+    """
+    if window_size <= 0:
+        raise ValueError("window_size deve essere > 0.")
+
+    majority_labels = []
+    for i in range(0, len(labels), window_size):
+        window = labels[i:i + window_size]
+        # Conta le etichette nella finestra
+        label_counts = Counter(window).most_common()
+        # Trova la (o le) etichetta/e più frequente/i
+        max_count = label_counts[0][1]
+        tied_labels = [lab for lab, cnt in label_counts if cnt == max_count]
+        # Se c'è un pareggio, restituisci -1 (o altro valore) per indicare un tie
+        if len(tied_labels) > 1:
+            majority_labels.append(-1)
+        else:
+            majority_labels.append(tied_labels[0])
+    return np.array(majority_labels)
+
+def cnn_test_dapp(x: np.ndarray, model_path: str) -> int:
+    """
+    Carica un modello CNN, esegue la predizione su un'unica time series `x` e restituisce 
+    un'unica etichetta di output.
+    
+    Se `n_samples` è fornito e > 0, vengono raggruppate predizioni in finestre di dimensione
+    `n_samples` e viene applicato il majority voting per ottenere una singola etichetta.
+    Altrimenti, viene fatta la predizione su tutti i campioni e si prende l'etichetta più frequente.
+
+    Args:
+        x (np.ndarray): Time series di ingresso. Deve avere dimensioni compatibili col modello.
+        model_path (str): Path del modello salvato (.keras, .h5, ecc.).
+        n_samples (int, opzionale): Dimensione della finestra per il majority voting. 
+                                    Se non specificato o <= 0, non si usa la finestra.
+
+    Returns:
+        int: Etichetta finale assegnata alla time series.
+    """
+    # Verifica input
+    if x is None or len(x) == 0:
+        raise ValueError("La time series di input è vuota o None.")
+
+    # Carica il modello
+    model = keras.models.load_model(model_path)
+
+    # Se necessario, adatta la shape di x (dipende da come hai addestrato la rete)
+    # Esempio: se il modello si aspetta una shape (batch_size, timesteps, 1)
+    if len(x.shape) == 1:
+        # Aggiungo le dimensioni batch e canale
+        x = x.reshape((1, -1, 1))
+    elif len(x.shape) == 2:
+        # Aggiungo solo la dimensione batch
+        x = np.expand_dims(x, axis=0)
+
+    # Predici
+    predictions = model.predict(x)  # shape: (batch_size, n_timesteps, n_classi?) o (batch_size, n_classi)
+    print(f"predictions: {predictions}")
+    # Se il modello outputta una sola predizione per batch (es: (batch_size, n_classi)):
+    # y_pred_classes sarà di dimensione (batch_size,)
+    if predictions.ndim == 2:
+        y_pred_classes = np.argmax(predictions, axis=1)
+        print(f"sopra\n{y_pred_classes}")
+    else:
+        # Se il modello outputta una predizione per ogni timestep (es: (batch_size, n_timesteps, n_classi))
+        # allora comprimiamo il batch e otteniamo tante predizioni quanti i timesteps
+        predictions = predictions.reshape(-1, predictions.shape[-1])
+        y_pred_classes = np.argmax(predictions, axis=1)
+        print(f"sotto\n{y_pred_classes}")
+
+    '''
+    # Se n_samples è definito e > 0, applichiamo majority voting a blocchi di n_samples
+    if n_samples is not None and n_samples > 0:
+        y_pred_windows = majority_voting(y_pred_classes, n_samples)
+        # Ora y_pred_windows contiene una predizione per ogni finestra
+        # Infine, prendiamo la classe più frequente sull'intera sequenza di finestre
+        final_label = Counter(y_pred_windows).most_common(1)[0][0]
+    else:
+        # Altrimenti prendiamo la classe più frequente tra tutte le predizioni
+        final_label = Counter(y_pred_classes).most_common(1)[0][0]
+    '''
+    final_label = Counter(y_pred_classes).most_common(1)[0][0]
+    return int(final_label)
