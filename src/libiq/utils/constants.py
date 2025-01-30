@@ -23,7 +23,7 @@ ORIGINAL_COMBINED_CSV_FILE_PATH = f'{LIBRARY_PATH}libiq/examples/test_results/iq
 OUTPUT_PATH = f'{LIBRARY_PATH}libiq/examples/test_results/iq_samples/csv/'
 REPORT_PATH = f'{LIBRARY_PATH}libiq/examples/test_results/iq_samples/reports/'
 
-CNN_MODEL_PATH = f'{LIBRARY_PATH}libiq/examples/test_results/models/'
+CNN_MODEL_PATH = f'{LIBRARY_PATH}libiq/examples/test_results/saved_models/best_model.keras'
 CLUSTER_MODEL_PATH = f'{LIBRARY_PATH}libiq/examples/test_results/models/'
 OUTPUT_PATH_TO_LABEL = f'{LIBRARY_PATH}libiq/examples/test_results/iq_samples/to_label/csv/'
 COMBINED_CSV_FILE_PATH_TO_LABEL = f'{LIBRARY_PATH}libiq/examples/test_results/iq_samples/to_label/csv/'

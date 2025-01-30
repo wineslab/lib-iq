@@ -1,7 +1,14 @@
+import os
+
+# 0 = mostra tutti i log TF (default)
+# 1 = nasconde i messaggi INFO
+# 2 = nasconde anche i WARNING
+# 3 = nasconde anche i messaggi di errore (sconsigliato)
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 from tensorflow import keras
 import numpy as np
 import pandas as pd
-from libiq.utils.constants import PLOTS_PATH, PLOTS_MODE, N_LABELS, CNN_MODEL_PATH, LABELS, PLOT_LABELS, PLOT_CONFUSION_MATRIX
+from libiq.utils.constants import PLOTS_PATH, PLOTS_MODE, N_LABELS, CNN_MODEL_PATH, LABELS, PLOT_LABELS, PLOT_CONFUSION_MATRIX, STATIC_LABELS
 import shutil
 from typing import List, Tuple
 from pathlib import Path
@@ -382,31 +389,7 @@ def cnn_test(file: str, n_samples: int = None) -> None:
     except (ValueError, TypeError) as e:
         raise e
 
-
-def majority_voting(labels: np.ndarray, window_size: int) -> np.ndarray:
-    """
-    Effettua il majority voting su un array di etichette, suddiviso in finestre di dimensione `window_size`.
-    Restituisce un array di etichette (una per finestra).
-    """
-    if window_size <= 0:
-        raise ValueError("window_size deve essere > 0.")
-
-    majority_labels = []
-    for i in range(0, len(labels), window_size):
-        window = labels[i:i + window_size]
-        # Conta le etichette nella finestra
-        label_counts = Counter(window).most_common()
-        # Trova la (o le) etichetta/e più frequente/i
-        max_count = label_counts[0][1]
-        tied_labels = [lab for lab, cnt in label_counts if cnt == max_count]
-        # Se c'è un pareggio, restituisci -1 (o altro valore) per indicare un tie
-        if len(tied_labels) > 1:
-            majority_labels.append(-1)
-        else:
-            majority_labels.append(tied_labels[0])
-    return np.array(majority_labels)
-
-def cnn_test_dapp(x: np.ndarray, model_path: str) -> int:
+def cnn_test_dapp(x: np.ndarray, timeseries_size: int, model_path: str = CNN_MODEL_PATH) -> int:
     """
     Carica un modello CNN, esegue la predizione su un'unica time series `x` e restituisce 
     un'unica etichetta di output.
@@ -431,29 +414,17 @@ def cnn_test_dapp(x: np.ndarray, model_path: str) -> int:
     # Carica il modello
     model = keras.models.load_model(model_path)
 
-    # Se necessario, adatta la shape di x (dipende da come hai addestrato la rete)
-    # Esempio: se il modello si aspetta una shape (batch_size, timesteps, 1)
-    if len(x.shape) == 1:
-        # Aggiungo le dimensioni batch e canale
-        x = x.reshape((1, -1, 1))
-    elif len(x.shape) == 2:
-        # Aggiungo solo la dimensione batch
-        x = np.expand_dims(x, axis=0)
-
     # Predici
-    predictions = model.predict(x)  # shape: (batch_size, n_timesteps, n_classi?) o (batch_size, n_classi)
-    print(f"predictions: {predictions}")
+    predictions = model.predict(x, verbose=0)  # shape: (batch_size, n_timesteps, n_classi?) o (batch_size, n_classi)
     # Se il modello outputta una sola predizione per batch (es: (batch_size, n_classi)):
     # y_pred_classes sarà di dimensione (batch_size,)
     if predictions.ndim == 2:
         y_pred_classes = np.argmax(predictions, axis=1)
-        print(f"sopra\n{y_pred_classes}")
     else:
         # Se il modello outputta una predizione per ogni timestep (es: (batch_size, n_timesteps, n_classi))
         # allora comprimiamo il batch e otteniamo tante predizioni quanti i timesteps
         predictions = predictions.reshape(-1, predictions.shape[-1])
         y_pred_classes = np.argmax(predictions, axis=1)
-        print(f"sotto\n{y_pred_classes}")
 
     '''
     # Se n_samples è definito e > 0, applichiamo majority voting a blocchi di n_samples
@@ -467,4 +438,7 @@ def cnn_test_dapp(x: np.ndarray, model_path: str) -> int:
         final_label = Counter(y_pred_classes).most_common(1)[0][0]
     '''
     final_label = Counter(y_pred_classes).most_common(1)[0][0]
-    return int(final_label)
+
+
+
+    return STATIC_LABELS[final_label]
