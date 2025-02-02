@@ -13,17 +13,21 @@ if platform == 'Docker':
 elif platform == 'Colosseum':
     capture_path = '/iq_samples'
 elif platform == 'local':
-    capture_path = '/home/user/Desktop/iq_samples'
-    #capture_path = '/home/user/Desktop/catture'
+    #capture_path = '/home/user/Desktop/iq_samples'
+    capture_path = '/home/user/Desktop/catture'
 
-#input_file_path = f'{capture_path}/Noise/iqs_1738055171.bin'
-#input_file_path = f'{capture_path}/Triangular/iqs_1738057152.bin'
+#input_file_path = f'{capture_path}/Noise/iqs_1738250838.bin'
+#input_file_path = f'{capture_path}/Triangular/iqs_1738252157.bin'
+#input_file_path = f'{capture_path}/Sine/iqs_1738253375.bin'
 
+input_file_path = '/home/user/Desktop/libiq/examples/test_results/iq_samples/csv/'
+#input_file_path += 'iqs_1738250816_1.csv'
+input_file_path += 'combined_output.csv'
 
 #input_file_path = f'{capture_path}/WIFI/wifi_0.bin'
 #input_file_path = f'{capture_path}/5G/5G_0.bin'
 #input_file_path = f'{capture_path}/WIFI/wifi_0.bin'
-input_file_path = f'{capture_path}/Triangular/triangular_0.bin'
+#input_file_path = f'{capture_path}/Triangular/triangular_0.bin'
 
 analyzer = libiq.Analyzer()
 
@@ -31,7 +35,7 @@ analyzer = libiq.Analyzer()
 data_type = libiq.IQDataType.INT16.value
 
 onverlap = 0
-window_size = 2**8#1536
+window_size = 2**5#1536
 sample_rate = 20000000
 center_frequency = 1000000000
 
@@ -114,7 +118,7 @@ print(len(iq_samples))
 '''
 
 
-iq = analyzer.get_iq_samples(input_file_path, start, start + diff, data_type)
+iq = analyzer.get_iq_samples(input_file_path, data_type)
 fft = analyzer.generate_IQ_Spectrogram(iq, onverlap, window_size, sample_rate)
 middle_time = time.time()
 print(f"The code took {middle_time - start_time} seconds to read iq sample and to calculate fftw.")

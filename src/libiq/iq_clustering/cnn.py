@@ -258,41 +258,50 @@ def make_model(num_classes: int, input_shape: tuple) -> keras.models.Model:
     except (TypeError, ValueError) as e:
         raise e
 
-def cnn_train(x_train: pd.DataFrame, y_train: pd.DataFrame, epochs: int = 5, batch_size: int = 32) -> None:
+def cnn_train(x_train, y_train, epochs: int = 10, batch_size: int = 32) -> None:
     """
-    Train a CNN model using the provided training data.
-
-    Args:
-        x_train (pd.DataFrame): Training features.
-        y_train (pd.DataFrame): Training labels.
-        epochs (int, optional): Number of training epochs. Default is 5.
-        batch_size (int, optional): Batch size for training. Default is 32.
-
-    Returns:
-        None
-
-    Raises:
-        ValueError: If x_train or y_train is None.
-        TypeError: If x_train or y_train are not in the expected format.
+    Addestra un modello CNN sui dati in cui ogni esempio è una time series completa.
+    Se il mode è 'all', si assumono presenti le colonne:
+    'Real', 'Imaginary', 'Phase' e 'Magnitude', che verranno combinate per formare
+    un array di forma (n_samples, sequence_length, 4).
     """
-
     print("\nStarting CNN model training...")
 
     try:
-        if x_train is None or y_train is None:
-            raise ValueError("Input data is None")
+        # Se x_train è un DataFrame, verifichiamo se sono presenti i quattro canali
+        if isinstance(x_train, pd.DataFrame):
+            required_cols = ['Real', 'Imaginary', 'Phase', 'Magnitude']
+            if set(required_cols).issubset(x_train.columns):
+                # Per ogni riga, creiamo un array di forma (sequence_length, 4)
+                x_train_array = np.stack([
+                    np.stack((row['Real'], row['Imaginary'], row['Phase'], row['Magnitude']), axis=-1)
+                    for idx, row in x_train.iterrows()
+                ])
+            elif 'Values' in x_train.columns:
+                # Se esiste la colonna 'Values', la usiamo
+                x_train_array = np.stack(x_train['Values'].values)
+            else:
+                # Altrimenti, utilizziamo la prima colonna come fallback
+                x_train_array = np.stack(x_train.iloc[:, 0].values)
+        elif isinstance(x_train, pd.Series):
+            x_train_array = np.stack(x_train.values)
+        else:
+            # Se x_train è già un array NumPy, lo usiamo direttamente
+            x_train_array = x_train
+
+        # Convertiamo in float
+        x_train_array = x_train_array.astype(float)
+
+        # Se non abbiamo già la dimensione canale (cioè, se l'array è 2D), la aggiungiamo.
+        # Nel caso mode 'all' dovrebbe già avere shape (n_samples, sequence_length, 4)
+        if x_train_array.ndim == 2:
+            x_train_array = np.expand_dims(x_train_array, axis=-1)
         
-        x_train = x_train.apply(pd.Series.explode)
+        # Convertiamo le etichette in NumPy array
+        y_train_array = np.array(y_train)
 
-        y_train = np.repeat(y_train, x_train.groupby(level=0).size())
-
-        x_train = x_train.to_numpy()
-        
-        x_train = x_train.reshape((x_train.shape[0], x_train.shape[1], 1))
-        x_train = x_train.astype(float)
-
-        model = make_model(N_LABELS, input_shape=x_train.shape[1:])
-
+        # Creiamo il modello; l'input shape viene preso da x_train_array.shape[1:]
+        model = make_model(N_LABELS, input_shape=x_train_array.shape[1:])
         keras.utils.plot_model(model, show_shapes=True, to_file=f'{CNN_MODEL_PATH}model.pdf')
 
         callbacks = [
@@ -312,8 +321,8 @@ def cnn_train(x_train: pd.DataFrame, y_train: pd.DataFrame, epochs: int = 5, bat
         )
 
         history = model.fit(
-            x_train,
-            y_train,
+            x_train_array,
+            y_train_array,
             batch_size=batch_size,
             epochs=epochs,
             callbacks=callbacks,
@@ -321,124 +330,132 @@ def cnn_train(x_train: pd.DataFrame, y_train: pd.DataFrame, epochs: int = 5, bat
             verbose=1,
         )
 
-        y_train_pred = np.argmax(model.predict(x_train), axis=1)
-        cnn_metrics(y_train, y_train_pred, f'{PLOTS_PATH}confusion_matrix_train.pdf')
-        
-    except (ValueError, TypeError) as e:
+        y_train_pred = np.argmax(model.predict(x_train_array), axis=1)
+        cnn_metrics(y_train_array, y_train_pred, f'{PLOTS_PATH}confusion_matrix_train.pdf')
+
+    except Exception as e:
         raise e
+
 
 def cnn_test(file: str, n_samples: int = None) -> None:
     """
-    Test a CNN model using data from a specified file.
-
-    Args:
-        file (str): Path to the CSV file containing test data.
-        n_samples (int, optional): Number of samples per voting window. Default is None.
-
-    Returns:
-        None
-
-    Raises:
-        ValueError: If the file path is invalid or if n_samples is less than or equal to zero.
-        TypeError: If the input types are incorrect.
+    Testa il modello CNN sui dati in cui ogni esempio è una time series completa.
+    Quando il mode è 'all', vengono usati tutti e quattro i canali:
+    'Real', 'Imaginary', 'Phase' e 'Magnitude'.
     """
-
     try:
         print("\n")
+        # Carica il CSV
         x = pd.read_csv(file)
-        if n_samples is None:
-            n_samples = int(len(x['File']) / len(np.unique(x['File'])))
-        if x is None:
-            raise ValueError("Input data is None")
         
-        x = x.apply(pd.Series.explode)
+        # Se il CSV contiene già una colonna 'Values', la usiamo (altrimenti siamo in mode diverso)
+        if 'Values' in x.columns:
+            x_series = x['Values']
+            # Se necessario, converte le stringhe in liste (ad esempio con eval)
+            # x_series = x_series.apply(eval)
+            x_array = np.stack(x_series.values)
+        else:
+            # Raggruppa per 'File' per ottenere una time series per ogni file
+            grouped = x.groupby('File').agg({
+                'Real': list,
+                'Imaginary': list,
+                'Phase': list,
+                'Magnitude': list,
+                'Labels': 'first'  # Le etichette sono uguali per file
+            }).reset_index()
+            
+            # Costruisci x_array combinando tutti e quattro i canali:
+            x_array = np.stack([
+                np.stack((row['Real'], row['Imaginary'], row['Phase'], row['Magnitude']), axis=-1)
+                for index, row in grouped.iterrows()
+            ])
+            y_array = grouped['Labels'].to_numpy()
         
-        y = np.array(x['Labels'])
-        x = x.drop(columns=['File', 'Labels'])
+        # Se invece il CSV conteneva la colonna 'Values', raggruppiamo le etichette
+        if 'Values' in x.columns:
+            y_grouped = x.groupby('File')['Labels'].first().reset_index()
+            y_array = y_grouped['Labels'].to_numpy()
         
-        x = x.to_numpy()
-        x = x.reshape((x.shape[0], x.shape[1], 1))
-        x = x.astype(float)
-
+        print("x shape before adding channel:", x_array.shape)
+        # Nel caso mode 'all' l'array dovrebbe già avere shape (n_samples, sequence_length, 4)
+        if x_array.ndim == 2:
+            x_array = np.expand_dims(x_array, axis=-1)
+        
+        print("x shape:", x_array.shape)
+        print("y shape:", y_array.shape)
+        
+        # Carica il modello
         model = keras.models.load_model(f'{CNN_MODEL_PATH}best_model.keras')
-
-        test_loss, test_acc = model.evaluate(x, y)
-
+        
+        test_loss, test_acc = model.evaluate(x_array, y_array)
         print("Test accuracy", test_acc)
         print("Test loss", test_loss)
-
-        y_pred = model.predict(x)
+        
+        y_pred = model.predict(x_array)
         y_pred_classes = np.argmax(y_pred, axis=1)
-        y_pred_majority = label_data(file, y_pred_classes, n_samples)
-
-        y_true = y[::n_samples]
-        y_pred_majority = y_pred_majority[::n_samples]
-
-        labels_count = pd.Series(y_true).value_counts()
-        pred_count = pd.Series(y_pred_majority).value_counts()
-
-        report = pd.DataFrame({'Actual': labels_count, 'Predicted': pred_count}).fillna(0)
-        report = report.astype(int)
-
-        report.index = report.index.map({v: k for k, v in LABELS.items()})
-
-        cnn_metrics(y, y_pred_classes, f'{PLOTS_PATH}confusion_matrix_test.pdf')
-        print("\n")
-        print(report)
+        
+        cnn_metrics(y_array, y_pred_classes, f'{PLOTS_PATH}confusion_matrix_test.pdf')
     
-    except (ValueError, TypeError) as e:
+    except Exception as e:
         raise e
+
 
 def cnn_test_dapp(x: np.ndarray, timeseries_size: int, model_path: str = CNN_MODEL_PATH) -> int:
     """
     Carica un modello CNN, esegue la predizione su un'unica time series `x` e restituisce 
     un'unica etichetta di output.
     
-    Se `n_samples` è fornito e > 0, vengono raggruppate predizioni in finestre di dimensione
-    `n_samples` e viene applicato il majority voting per ottenere una singola etichetta.
-    Altrimenti, viene fatta la predizione su tutti i campioni e si prende l'etichetta più frequente.
-
+    Si assume che, in modalità 'all', l'input x debba avere forma (sequence_length, 4).
+    Se necessario, vengono effettuati crop/padding e aggiunta della dimensione batch.
+    
     Args:
-        x (np.ndarray): Time series di ingresso. Deve avere dimensioni compatibili col modello.
+        x (np.ndarray): Time series di ingresso.
+        timeseries_size (int): Lunghezza attesa della time series (es. 400).
         model_path (str): Path del modello salvato (.keras, .h5, ecc.).
-        n_samples (int, opzionale): Dimensione della finestra per il majority voting. 
-                                    Se non specificato o <= 0, non si usa la finestra.
-
+    
     Returns:
         int: Etichetta finale assegnata alla time series.
     """
     # Verifica input
     if x is None or len(x) == 0:
         raise ValueError("La time series di input è vuota o None.")
-
+    
+    # Se x non ha ancora la dimensione canale, controlliamo
+    if x.ndim == 1:
+        # Converti in 2D (sequence_length, 1)
+        x = np.expand_dims(x, axis=-1)
+    elif x.ndim == 2:
+        # Se x ha 2 dimensioni, controlla se il numero di canali è quello atteso.
+        # Per mode 'all', ci aspettiamo 4 canali.
+        if x.shape[-1] != 4:
+            raise ValueError(f"Per mode 'all', ci si aspetta 4 canali; ricevuti {x.shape[-1]}.")
+    
+    # Aggiungi la dimensione batch se necessario (da (sequence_length, 4) a (1, sequence_length, 4))
+    if x.ndim == 2:
+        x = np.expand_dims(x, axis=0)
+    elif x.ndim == 3 and x.shape[0] != 1:
+        # Se ci sono più di un esempio, prendi il primo
+        x = x[0:1, :, :]
+    
+    # Assicura che la lunghezza della sequenza sia quella attesa (timeseries_size)
+    if x.shape[1] > timeseries_size:
+        x = x[:, :timeseries_size, :]
+    elif x.shape[1] < timeseries_size:
+        pad_width = timeseries_size - x.shape[1]
+        x = np.pad(x, ((0, 0), (0, pad_width), (0, 0)), mode='constant')
+    
     # Carica il modello
     model = keras.models.load_model(model_path)
-
-    # Predici
-    predictions = model.predict(x, verbose=0)  # shape: (batch_size, n_timesteps, n_classi?) o (batch_size, n_classi)
-    # Se il modello outputta una sola predizione per batch (es: (batch_size, n_classi)):
-    # y_pred_classes sarà di dimensione (batch_size,)
+    
+    predictions = model.predict(x, verbose=0)
     if predictions.ndim == 2:
         y_pred_classes = np.argmax(predictions, axis=1)
     else:
-        # Se il modello outputta una predizione per ogni timestep (es: (batch_size, n_timesteps, n_classi))
-        # allora comprimiamo il batch e otteniamo tante predizioni quanti i timesteps
         predictions = predictions.reshape(-1, predictions.shape[-1])
         y_pred_classes = np.argmax(predictions, axis=1)
-
-    '''
-    # Se n_samples è definito e > 0, applichiamo majority voting a blocchi di n_samples
-    if n_samples is not None and n_samples > 0:
-        y_pred_windows = majority_voting(y_pred_classes, n_samples)
-        # Ora y_pred_windows contiene una predizione per ogni finestra
-        # Infine, prendiamo la classe più frequente sull'intera sequenza di finestre
-        final_label = Counter(y_pred_windows).most_common(1)[0][0]
-    else:
-        # Altrimenti prendiamo la classe più frequente tra tutte le predizioni
-        final_label = Counter(y_pred_classes).most_common(1)[0][0]
-    '''
+    
+    # In questo caso, se il modello restituisce più predizioni (ad esempio per ogni timestep),
+    # si applica un majority voting; qui, scegliamo la classe più frequente.
     final_label = Counter(y_pred_classes).most_common(1)[0][0]
-
-
-
+    
     return STATIC_LABELS[final_label]

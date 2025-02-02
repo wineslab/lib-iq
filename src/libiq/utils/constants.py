@@ -7,10 +7,12 @@ if PLATFORM == 'Colosseum':
     CAPTURES_PATH = '/iq_samples/'
     LIBRARY_PATH = '/root/'
 elif PLATFORM == 'local':
-    CAPTURES_PATH = '/home/wines/spear-dApp/logs/'
-    LIBRARY_PATH = '/home/wines/'
+    #CAPTURES_PATH = '/home/wines/spear-dApp/logs/'
+    #LIBRARY_PATH = '/home/wines/'
     #CAPTURES_PATH = '/home/user/Desktop/iq_samples/'
     #LIBRARY_PATH = '/home/user/Desktop/'
+    CAPTURES_PATH = '/home/user/Desktop/catture/'
+    LIBRARY_PATH = '/home/user/Desktop/'
 elif PLATFORM == 'Docker':
     CAPTURES_PATH = '/home/user/iq_samples/'
     LIBRARY_PATH = '/home/user/'
@@ -23,7 +25,7 @@ ORIGINAL_COMBINED_CSV_FILE_PATH = f'{LIBRARY_PATH}libiq/examples/test_results/iq
 OUTPUT_PATH = f'{LIBRARY_PATH}libiq/examples/test_results/iq_samples/csv/'
 REPORT_PATH = f'{LIBRARY_PATH}libiq/examples/test_results/iq_samples/reports/'
 
-CNN_MODEL_PATH = f'{LIBRARY_PATH}libiq/examples/test_results/saved_models/best_model.keras'
+CNN_MODEL_PATH = f'{LIBRARY_PATH}libiq/examples/test_results/models/' #saved_models/
 CLUSTER_MODEL_PATH = f'{LIBRARY_PATH}libiq/examples/test_results/models/'
 OUTPUT_PATH_TO_LABEL = f'{LIBRARY_PATH}libiq/examples/test_results/iq_samples/to_label/csv/'
 COMBINED_CSV_FILE_PATH_TO_LABEL = f'{LIBRARY_PATH}libiq/examples/test_results/iq_samples/to_label/csv/'
@@ -35,25 +37,36 @@ PLOTS_PATH = f'{LIBRARY_PATH}libiq/examples/test_results/plots/'
 
 
 LABELS = {
+    #'Undefined': -1,
+    #'5G': 0,
+    #'WIFI': 1,
+    #'Triangular': 2,
+    #'Noise': 3
     'Undefined': -1,
-    '5G': 0,
-    'WIFI': 1,
-    'Triangular': 2,
-    'Noise': 3
+    'Sine': 0,
+    'Triangular': 1,
+    'Noise': 2
 }
 
 PLOT_LABELS = [
-    '5G',
-    'WIFI',
+    #'5G',
+    #'WIFI',
+    #'Triangular',
+    #'Noise'
+    'Undefined',
+    'Sine',
     'Triangular',
     'Noise'
 ]
 
 STATIC_LABELS = {
-    0: '5G',
-    1: 'WIFI',
-    2: 'Triangular',
-    3: 'Noise'
+    #0: '5G',
+    #1: 'WIFI',
+    #2: 'Triangular',
+    #3: 'Noise'
+    0: 'Sine',
+    1: 'Triangular',
+    2: 'Noise'
 }
 
 COLUMNS_LIST = {
@@ -93,7 +106,8 @@ else:
     DATA_FORMAT = DATA_FORMAT_OPTIONS[2]
     COLUMNS = ['Real', 'Imaginary', 'Magnitude']
 
-DTYPE = np.complex64
+DTYPE = np.int16    #for spear dapp
+#DTYPE = np.complex64
 CHUNK_SIZE = 30000000
 TEST_SIZE = 0.2
 RANDOM_STATE = 5
@@ -110,60 +124,25 @@ METRICS = ['euclidean', 'softdtw', 'dtw']
 GRIDSEARCH_INIT = ['k-means++']
 
 FILES = {
-    f"{CAPTURES_PATH}Triangular/triangular_0.bin": LABELS['Triangular'],
-    f"{CAPTURES_PATH}Triangular/triangular_1.bin": LABELS['Triangular'],
-    #f"{CAPTURES_PATH}Triangular/triangular_2.bin": LABELS['Triangular'],
-    
     #f"{CAPTURES_PATH}Triangular/triangular_0.bin": LABELS['Triangular'],
     #f"{CAPTURES_PATH}Triangular/triangular_1.bin": LABELS['Triangular'],
-    #f"{CAPTURES_PATH}Triangular/triangular_2.bin": LABELS['Triangular'],
-    #f"{CAPTURES_PATH}Triangular/triangular_3.bin": LABELS['Triangular'],
-    #f"{CAPTURES_PATH}Triangular/triangular_4.bin": LABELS['Triangular'],
-    #f"{CAPTURES_PATH}Triangular/triangular_5.bin": LABELS['Triangular'],
-    #f"{CAPTURES_PATH}Triangular/triangular_6.bin": LABELS['Triangular'],
 
-    f"{CAPTURES_PATH}5G/5G_0.bin": LABELS['5G'],
-    f"{CAPTURES_PATH}5G/5G_1.bin": LABELS['5G'],
-    #f"{CAPTURES_PATH}5G/5G_2.bin": LABELS['5G'],
-    
-    #f"{CAPTURES_PATH}5G/monodirectional/5G_0.bin": LABELS['5G'],
-    #f"{CAPTURES_PATH}5G/monodirectional/5G_1.bin": LABELS['5G'],
-    #f"{CAPTURES_PATH}5G/bidirectional/5G_2.bin": LABELS['5G'],
-    #f"{CAPTURES_PATH}5G/bidirectional/5G_3.bin": LABELS['5G'],
-    #f"{CAPTURES_PATH}5G/bidirectional/5G_4.bin": LABELS['5G'],
-    #f"{CAPTURES_PATH}5G/bidirectional/5G_5.bin": LABELS['5G'],
-    #f"{CAPTURES_PATH}5G/bidirectional/5G_6.bin": LABELS['5G'],
+    #f"{CAPTURES_PATH}5G/5G_0.bin": LABELS['5G'],
+    #f"{CAPTURES_PATH}5G/5G_1.bin": LABELS['5G'],
 
-    f"{CAPTURES_PATH}Noise/noise_0.bin": LABELS['Noise'],
-    f"{CAPTURES_PATH}Noise/noise_1.bin": LABELS['Noise'],
-    #f"{CAPTURES_PATH}Noise/noise_2.bin": LABELS['Noise'],
-    
     #f"{CAPTURES_PATH}Noise/noise_0.bin": LABELS['Noise'],
     #f"{CAPTURES_PATH}Noise/noise_1.bin": LABELS['Noise'],
-    #f"{CAPTURES_PATH}Noise/noise_2.bin": LABELS['Noise'],
-    #f"{CAPTURES_PATH}Noise/noise_3.bin": LABELS['Noise'],
-    #f"{CAPTURES_PATH}Noise/noise_4.bin": LABELS['Noise'],
-    #f"{CAPTURES_PATH}Noise/noise_5.bin": LABELS['Noise'],
-    #f"{CAPTURES_PATH}Noise/noise_6.bin": LABELS['Noise'],
 
-    f"{CAPTURES_PATH}WIFI/wifi_0.bin": LABELS['WIFI'],
-    f"{CAPTURES_PATH}WIFI/wifi_1.bin": LABELS['WIFI'],
-    #f"{CAPTURES_PATH}WIFI/wifi_2.bin": LABELS['WIFI'],
-    
     #f"{CAPTURES_PATH}WIFI/wifi_0.bin": LABELS['WIFI'],
     #f"{CAPTURES_PATH}WIFI/wifi_1.bin": LABELS['WIFI'],
-    #f"{CAPTURES_PATH}WIFI/wifi_2.bin": LABELS['WIFI'],
-    #f"{CAPTURES_PATH}WIFI/wifi_3.bin": LABELS['WIFI'],
-    #f"{CAPTURES_PATH}WIFI/wifi_4.bin": LABELS['WIFI'],
-    #f"{CAPTURES_PATH}WIFI/wifi_5.bin": LABELS['WIFI'],
-    #f"{CAPTURES_PATH}WIFI/wifi_6.bin": LABELS['WIFI'],
 }
 
 FILES_TO_LABEL = {
-#    f"{CAPTURES_PATH}Triangular/triangular_2.bin": LABELS['Triangular'],
-#    f"{CAPTURES_PATH}5G/5G_2.bin": LABELS['5G'],
-
-#    f"{CAPTURES_PATH}Noise/noise_2.bin": LABELS['Noise'],
-
-#    f"{CAPTURES_PATH}WIFI/wifi_2.bin": LABELS['WIFI'],
+    #f"{CAPTURES_PATH}Triangular/triangular_2.bin": LABELS['Triangular'],
+    
+    #f"{CAPTURES_PATH}5G/5G_2.bin": LABELS['5G'],
+    
+    #f"{CAPTURES_PATH}Noise/noise_2.bin": LABELS['Noise'],
+    
+    #f"{CAPTURES_PATH}WIFI/wifi_2.bin": LABELS['WIFI'],   
 }
