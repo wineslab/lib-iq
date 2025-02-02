@@ -43,9 +43,9 @@ LABELS = {
     #'Triangular': 2,
     #'Noise': 3
     'Undefined': -1,
-    'Sine': 0,
-    'Triangular': 1,
-    'Noise': 2
+    'Noise': 0,
+    'Uniform': 1,
+    'Sine': 2
 }
 
 PLOT_LABELS = [
@@ -54,9 +54,9 @@ PLOT_LABELS = [
     #'Triangular',
     #'Noise'
     'Undefined',
-    'Sine',
-    'Triangular',
-    'Noise'
+    'Noise',
+    'Uniform',
+    'Sine'
 ]
 
 STATIC_LABELS = {
@@ -64,9 +64,9 @@ STATIC_LABELS = {
     #1: 'WIFI',
     #2: 'Triangular',
     #3: 'Noise'
-    0: 'Sine',
-    1: 'Triangular',
-    2: 'Noise'
+    0: 'Noise',
+    1: 'Uniform',
+    2: 'Sine'
 }
 
 COLUMNS_LIST = {

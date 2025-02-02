@@ -273,6 +273,7 @@ def cnn_train(x_train, y_train, epochs: int = 10, batch_size: int = 32) -> None:
             required_cols = ['Real', 'Imaginary', 'Phase', 'Magnitude']
             if set(required_cols).issubset(x_train.columns):
                 # Per ogni riga, creiamo un array di forma (sequence_length, 4)
+                
                 x_train_array = np.stack([
                     np.stack((row['Real'], row['Imaginary'], row['Phase'], row['Magnitude']), axis=-1)
                     for idx, row in x_train.iterrows()
@@ -436,13 +437,6 @@ def cnn_test_dapp(x: np.ndarray, timeseries_size: int, model_path: str = CNN_MOD
     elif x.ndim == 3 and x.shape[0] != 1:
         # Se ci sono più di un esempio, prendi il primo
         x = x[0:1, :, :]
-    
-    # Assicura che la lunghezza della sequenza sia quella attesa (timeseries_size)
-    if x.shape[1] > timeseries_size:
-        x = x[:, :timeseries_size, :]
-    elif x.shape[1] < timeseries_size:
-        pad_width = timeseries_size - x.shape[1]
-        x = np.pad(x, ((0, 0), (0, pad_width), (0, 0)), mode='constant')
     
     # Carica il modello
     model = keras.models.load_model(model_path)

@@ -123,6 +123,8 @@ def handle_message(file_path: str,
     counter = 0         # campioni accumulati nel CSV corrente
     file_counter = 1    # indice del CSV corrente
     message: List[List] = []
+    total_samples_written = 0  # campioni totali processati
+    saved_files = []  # Lista per tenere traccia dei file creati
 
     def save_to_csv(msg: List[List], f_counter: int) -> None:
         if not msg:
@@ -131,40 +133,21 @@ def handle_message(file_path: str,
         df = pd.DataFrame(msg, columns=columns_name(DATA_FORMAT))
         try:
             df.to_csv(file_name, mode='a', header=not os.path.exists(file_name), index=False)
+            saved_files.append((file_name, len(msg)))  # Registra il file e il numero di righe scritte
         except Exception as e:
             raise ValueError(f"Error writing to CSV file {file_name}: {e}")
 
     try:
-        total_samples_written = 0  # campioni totali processati
-
         for chunk_complex_data in read_data(file_path, DTYPE):
-            # APPLICAZIONE DEL FILTRO IN DOMINIO DELLA FREQUENZA (se specificato)
             if fft_filter != (-float('inf'), float('inf')):
-                freq_min, freq_max = fft_filter
-                freq_min = int(freq_min)
-                freq_max = int(freq_max)
+                freq_min, freq_max = int(fft_filter[0]), int(fft_filter[1])
                 n = len(chunk_complex_data)
-                # Assicuriamoci che gli indici siano nei limiti del chunk
-                if freq_min < 0:
-                    freq_min = 0
-                if freq_max > n:
-                    freq_max = n
+                freq_min = max(0, freq_min)
+                freq_max = min(n, freq_max)
                 fft_data = np.fft.fft(chunk_complex_data)
-                #codice subito sotto per azzerare i valori nel range specificato
-                    #filtered_fft = np.zeros_like(fft_data, dtype=complex)
-                    #filtered_fft[freq_min:freq_max] = fft_data[freq_min:freq_max]
-                    #if freq_min > 0:
-                    #    filtered_fft[-freq_max:-freq_min] = fft_data[-freq_max:-freq_min]
-                    # Ricostruisco il segnale nel dominio del tempo
-                    #chunk_complex_data = np.fft.ifft(filtered_fft)
+                selected_bins = np.concatenate((fft_data[freq_min:freq_max], fft_data[-freq_max:-freq_min]))
+                chunk_complex_data = np.fft.ifft(selected_bins, n=selected_bins.size)
 
-                selected_positive = fft_data[freq_min:freq_max]
-                selected_negative = fft_data[-freq_max:-freq_min]
-                selected_bins = np.concatenate((selected_positive, selected_negative))
-                new_length = selected_bins.size
-                chunk_complex_data = np.fft.ifft(selected_bins, n=new_length)
-
-            # Processa ciascun campione nel chunk (già filtrato, se richiesto)
             for c in chunk_complex_data:
                 if file_counter > num_files:
                     break  # raggiunto il numero massimo di CSV
@@ -174,7 +157,6 @@ def handle_message(file_path: str,
                 counter += 1
                 total_samples_written += 1
 
-                # Quando abbiamo accumulato CHUNK_SIZE righe, salviamo su CSV
                 if counter == CHUNK_SIZE:
                     save_to_csv(message, file_counter)
                     message = []
@@ -194,12 +176,17 @@ def handle_message(file_path: str,
             if file_counter > num_files:
                 break
 
-        # Salva eventuali righe rimanenti se non abbiamo raggiunto num_files
         if message and file_counter <= num_files:
             save_to_csv(message, file_counter)
 
+        # Controllo finale: verifica se il numero totale di campioni scritti corrisponde a n_samples
+        for file_name, num_rows in saved_files:
+            if num_rows != n_samples:
+                print(f"⚠️ WARNING: The file '{file_name}' contains {num_rows} samples instead of {n_samples}.")
+
     except Exception as e:
         raise ValueError(f"Error processing file {file_path}: {e}")
+
 
 # =============================================================================
 # 7) Creazione dataset da file binari
