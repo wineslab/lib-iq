@@ -5,18 +5,22 @@
 #include <vector>
 #include <filesystem>
 #include <fstream>
+#include <sstream>
 #include <string>
 #include <utility>
 #include <cmath>
-#include <fftw3.h>
 #include <complex>
+#include <fftw3.h>
+#include <stdexcept>
+#include <iomanip>
+#include <algorithm>
 
-/**
- * @brief Enum to specify the data type of IQ samples.
- */
+// ============================================================================
+// Enum to specify the data type of IQ samples
+// ============================================================================
 enum class IQDataType {
     FLOAT32,
-    FLOAT64, 
+    FLOAT64,
     INT16
 };
 
@@ -25,60 +29,59 @@ public:
     Analyzer() {}
 
     /**
-     * @brief Performs a Fast Fourier Transform (FFT) on IQ data from a specified file.
+     * @brief Performs a Fast Fourier Transform (FFT) on IQ data read from a file.
      *
-     * @param input_file_path The path to the file containing the IQ data.
-     * @param data_type The data type of the IQ samples (FLOAT32 or FLOAT64).
+     * @param input_file_path The path to the file containing IQ data.
+     * @param data_type The data type of the IQ samples.
      * @return A 2D vector containing the real and imaginary parts of the FFT output.
      */
     std::vector<std::vector<double>> fast_fourier_transform(const std::string& input_file_path, IQDataType data_type);
 
     /**
-     * @brief Performs a Fast Fourier Transform (FFT) on provided IQ data.
+     * @brief Performs an FFT on provided IQ data.
      *
-     * @param iq_samples A 2D vector containing the IQ samples [real, imag].
+     * @param iq_samples A 2D vector containing IQ samples [real, imaginary].
      * @return A 2D vector containing the real and imaginary parts of the FFT output.
      */
     std::vector<std::vector<double>> fast_fourier_transform(const std::vector<std::vector<double>>& iq_samples);
 
     /**
-    * @brief Performs a Fast Fourier Transform (FFT) on IQ data from a specified file within a range.
-    *
-    * @param input_file_path The path to the file containing the IQ data.
-    * @param start_sample The starting sample index.
-    * @param end_sample The ending sample index.
-    * @param data_type The data type of the IQ samples (FLOAT32 or FLOAT64).
-    * @return A 2D vector containing the real and imaginary parts of the FFT output.
-    */
+     * @brief Performs an FFT on IQ data read from a file within a specified sample range.
+     *
+     * @param input_file_path The path to the file containing IQ data.
+     * @param start_sample The starting sample index.
+     * @param end_sample The ending sample index (exclusive).
+     * @param data_type The data type of the IQ samples.
+     * @return A 2D vector containing the real and imaginary parts of the FFT output.
+     */
     std::vector<std::vector<double>> fast_fourier_transform(const std::string& input_file_path, int start_sample, int end_sample, IQDataType data_type);
 
     /**
-    * @brief Calculates the Power Spectral Density (PSD) of IQ data from a specified file within a range.
-    *
-    * @param input_file_path The path to the file containing the IQ data.
-    * @param start_sample The starting sample index.
-    * @param end_sample The ending sample index.
-    * @param data_type The data type of the IQ samples (FLOAT32 or FLOAT64).
-    * @return A vector containing the PSD data.
-    */
+     * @brief Calculates the Power Spectral Density (PSD) of IQ data read from a file within a specified range.
+     *
+     * @param input_file_path The path to the file containing IQ data.
+     * @param start_sample The starting sample index.
+     * @param end_sample The ending sample index (exclusive).
+     * @param data_type The data type of the IQ samples.
+     * @return A vector containing the PSD data.
+     */
     std::vector<double> calculate_PSD(const std::string& input_file_path, int start_sample, int end_sample, IQDataType data_type);
 
-
     /**
-     * @brief Calculates the Power Spectral Density (PSD) of IQ data from a specified file.
+     * @brief Calculates the PSD of IQ data read from a file.
      *
-     * @param input_file_path The path to the file containing the IQ data.
-     * @param sampleRate The sample rate of the IQ data.
-     * @param data_type The data type of the IQ samples (FLOAT32 or FLOAT64).
+     * @param input_file_path The path to the file containing IQ data.
+     * @param sampleRate The sampling rate of the IQ data.
+     * @param data_type The data type of the IQ samples.
      * @return A vector containing the PSD data.
      */
     std::vector<double> calculate_PSD(const std::string& input_file_path, double sampleRate, IQDataType data_type);
 
     /**
-     * @brief Calculates the Power Spectral Density (PSD) of provided IQ data.
+     * @brief Calculates the PSD of provided IQ data.
      *
-     * @param iq_samples A 2D vector containing the IQ samples [real, imag].
-     * @param sampleRate The sample rate of the IQ data.
+     * @param iq_samples A 2D vector containing IQ samples [real, imaginary].
+     * @param sampleRate The sampling rate of the IQ data.
      * @return A vector containing the PSD data.
      */
     std::vector<double> calculate_PSD(const std::vector<std::vector<double>>& iq_samples, double sampleRate);
@@ -86,103 +89,118 @@ public:
     /**
      * @brief Generates an IQ spectrogram from a file.
      *
-     * @param input_file_path The path of the file from which to read the IQ samples.
-     * @param overlap The number of samples that overlap between two consecutive windows.
+     * @param input_file_path The path to the file containing IQ data.
+     * @param overlap The number of overlapping samples between consecutive windows.
      * @param window_size The window size for the FFT.
-     * @param sample_rate The sampling rate of the IQ samples.
-     * @param data_type The data type of the IQ samples (FLOAT32 or FLOAT64).
-     * @return A two-dimensional vector representing the spectrogram in dB.
+     * @param sample_rate The sampling rate of the IQ data.
+     * @param data_type The data type of the IQ samples.
+     * @return A 2D vector representing the spectrogram in dB.
      */
     std::vector<std::vector<double>> generate_IQ_Spectrogram(const std::string& input_file_path, int overlap, int window_size, double sample_rate, IQDataType data_type);
 
     /**
      * @brief Generates a real-time IQ spectrogram from provided IQ data.
      *
-     * @param iq_samples_input A 2D vector of input IQ samples [real, imag].
-     * @param overlap The number of samples that overlap between two consecutive windows.
+     * @param iq_samples_input A 2D vector of IQ samples [real, imaginary].
+     * @param overlap The number of overlapping samples between consecutive windows.
      * @param window_size The window size for the FFT.
-     * @param sample_rate The sampling rate of the IQ samples.
-     * @return A two-dimensional vector representing the spectrogram in dB.
+     * @param sample_rate The sampling rate of the IQ data.
+     * @return A 2D vector representing the spectrogram in dB.
      */
     std::vector<std::vector<double>> generate_IQ_Spectrogram(const std::vector<std::vector<double>>& iq_samples_input, int overlap, int window_size, double sample_rate);
 
     /**
      * @brief Extracts the real part of IQ samples from a file.
      *
-     * @param input_file_path The path of the file from which to read the IQ samples.
-     * @param data_type The data type of the IQ samples (FLOAT32 or FLOAT64).
+     * @param input_file_path The path to the file containing IQ data.
+     * @param data_type The data type of the IQ samples.
      * @return A vector of doubles containing the real part.
      */
     std::vector<double> real_part_iq_sample(const std::string& input_file_path, IQDataType data_type);
 
     /**
-     * @brief Extracts the real part of provided IQ samples within a specified range.
+     * @brief Extracts the real part from provided IQ data within a specified range.
      *
-     * @param iq_samples A 2D vector of IQ samples [real, imag].
+     * @param iq_samples A 2D vector containing IQ samples [real, imaginary].
      * @param start_sample The starting sample index.
-     * @param end_sample The ending sample index.
-     * @return A vector of doubles containing the real part in the specified range.
+     * @param end_sample The ending sample index (exclusive).
+     * @return A vector of doubles containing the real part.
      */
     std::vector<double> real_part_iq_sample(const std::vector<std::vector<double>>& iq_samples, int start_sample, int end_sample);
 
     /**
      * @brief Extracts the imaginary part of IQ samples from a file.
      *
-     * @param input_file_path The path of the file from which to read the IQ samples.
-     * @param data_type The data type of the IQ samples (FLOAT32 or FLOAT64).
+     * @param input_file_path The path to the file containing IQ data.
+     * @param data_type The data type of the IQ samples.
      * @return A vector of doubles containing the imaginary part.
      */
     std::vector<double> complex_part_iq_sample(const std::string& input_file_path, IQDataType data_type);
 
     /**
-     * @brief Extracts the imaginary part of provided IQ samples within a specified range.
+     * @brief Extracts the imaginary part from provided IQ data within a specified range.
      *
-     * @param iq_samples A 2D vector of IQ samples [real, imag].
+     * @param iq_samples A 2D vector containing IQ samples [real, imaginary].
      * @param start_sample The starting sample index.
-     * @param end_sample The ending sample index.
-     * @return A vector of doubles containing the imaginary part in the specified range.
+     * @param end_sample The ending sample index (exclusive).
+     * @return A vector of doubles containing the imaginary part.
      */
     std::vector<double> complex_part_iq_sample(const std::vector<std::vector<double>>& iq_samples, int start_sample, int end_sample);
 
     /**
-     * @brief Extracts the real and imaginary parts of IQ samples from a file.
+     * @brief Extracts IQ samples (real and imaginary parts) from a file.
      *
-     * @param input_file_path The path of the file from which to read the IQ samples.
-     * @param data_type The data type of the IQ samples (FLOAT32 or FLOAT64).
-     * @return A 2D vector of [real, imag].
+     * @param input_file_path The path to the file containing IQ data.
+     * @param data_type The data type of the IQ samples.
+     * @return A 2D vector with [real, imaginary].
      */
     std::vector<std::vector<double>> get_iq_samples(const std::string& input_file_path, IQDataType data_type);
 
     /**
      * @brief Extracts IQ samples from a file within a specified range.
      *
-     * @param input_file_path The path to the file containing the IQ data.
+     * @param input_file_path The path to the file containing IQ data.
      * @param start_sample The starting sample index.
-     * @param end_sample The ending sample index.
-     * @param data_type The data type of the IQ samples (FLOAT32 or FLOAT64).
-     * @return A 2D vector of [real, imag].
+     * @param end_sample The ending sample index (exclusive).
+     * @param data_type The data type of the IQ samples.
+     * @return A 2D vector with [real, imaginary].
      */
     std::vector<std::vector<double>> get_iq_samples(const std::string& input_file_path, int start_sample, int end_sample, IQDataType data_type);
 
     /**
-     * @brief Extracts IQ samples from provided data within a specified range.
+     * @brief Overload: Extracts IQ samples from a file (supports both .bin and .csv).
+     *        For CSV files, the column names to extract are specified (default: "Real" and "Imaginary").
      *
-     * @param iq_samples A 2D vector of IQ samples [real, imag].
-     * @param start_sample The starting sample index.
-     * @param end_sample The ending sample index.
-     * @return A 2D vector di [real, imag].
+     * @param input_file_path The path to the file containing IQ data.
+     * @param data_type The data type of the IQ samples.
+     * @param csv_columns A vector of strings with the column names to use (default: {"Real", "Imaginary"}).
+     * @return A 2D vector with [real, imaginary].
      */
-    std::vector<std::vector<double>> get_iq_samples(const std::vector<std::vector<double>>& iq_samples, int start_sample, int end_sample);
+    std::vector<std::vector<double>> get_iq_samples(const std::string& input_file_path, IQDataType data_type, const std::vector<std::string>& csv_columns);
 
 private:
     /**
      * @brief Reads IQ samples from a file based on the specified data type.
+     *        If the file is CSV, the columns specified in csv_columns are used.
+     *        If csv_columns is not provided, the default is {"Real", "Imaginary"}.
      *
-     * @param input_file_path The path to the file containing the IQ data.
-     * @param data_type The data type of the IQ samples (FLOAT32 or FLOAT64).
-     * @return A vector of complex numbers representing the IQ samples.
+     * @param input_file_path The path to the file containing IQ data.
+     * @param data_type The data type of the IQ samples.
+     * @return A vector of std::complex<double> containing the IQ samples.
      */
     std::vector<std::complex<double>> read_iq_samples(const std::string& input_file_path, IQDataType data_type);
+    /**
+     * @brief Reads IQ samples from a file based on the specified data type.
+     *        If the file is CSV, the columns specified in csv_columns are used.
+     *        If csv_columns is not provided, the default is {"Real", "Imaginary"}.
+     *
+     * @param input_file_path The path to the file containing IQ data.
+     * @param data_type The data type of the IQ samples.
+     * @param csv_columns A vector of strings with the column names (default: {"Real", "Imaginary"}).
+     * @return A vector of std::complex<double> containing the IQ samples.
+     */
+    std::vector<std::complex<double>> read_iq_samples(const std::string& input_file_path, IQDataType data_type, const std::vector<std::string>& csv_columns);
+
 };
 
 #endif // ANALYZER_H
