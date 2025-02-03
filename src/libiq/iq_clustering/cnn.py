@@ -28,7 +28,7 @@ from libiq.utils.constants import (
 )
 
 
-class Classification:
+class Classifier:
     def __init__(self, timeseries_size: int = 1536, model_path: str = CNN_MODEL_PATH):
         """
         Inizializza la classe con la lunghezza attesa della time series e il path del modello CNN addestrato.
