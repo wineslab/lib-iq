@@ -76,9 +76,9 @@ class Classifier:
             plt.figure(figsize=(10, 7))
             sns.heatmap(cm_normalized, annot=True, fmt='.3f', cmap='Blues',
                         xticklabels=class_names, yticklabels=class_names)
-            plt.xlabel('Predetto')
-            plt.ylabel('Reale')
-            plt.title('Matrice di Confusione Normalizzata per Riga')
+            plt.xlabel('Predicted')
+            plt.ylabel('Real')
+            plt.title('Normalized Confusion Matrix by Row')
 
             if PLOTS_MODE == 'interactive':
                 plt.show()

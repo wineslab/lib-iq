@@ -53,7 +53,7 @@ PLOT_LABELS = [
     #'WIFI',
     #'Triangular',
     #'Noise'
-    'Undefined',
+    #'Undefined',
     'No RFI',
     'Jammer',
     'Radar'
