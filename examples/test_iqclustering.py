@@ -9,7 +9,7 @@ from libiq.iq_clustering.clustering_models import k_mean_dba_magnitude_test_cros
 from libiq.iq_clustering.signal_processing import noise_detector
 from libiq.iq_clustering.signal_processing import noise_detector
 import libiq.iq_clustering.cnn as custom_cnn
-from libiq.iq_clustering.cnn import Classification  # Importa la classe aggiornata
+from libiq.iq_clustering.cnn import Classifier # Importa la classe aggiornata
 
 def build_datasets(
     captures_path,
@@ -101,7 +101,7 @@ def main():
 
     files, files_to_label = load_captures()
 
-    classification_model = Classification(timeseries_size=1536, model_path=f"{CNN_MODEL_PATH}best_model.keras")
+    classification_model = Classifier(timeseries_size=1536, model_path=f"{CNN_MODEL_PATH}best_model.keras")
 
     for n_files in [1]:
         for n_samples in [1536]:
