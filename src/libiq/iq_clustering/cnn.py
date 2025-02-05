@@ -184,7 +184,7 @@ class Classifier:
         except (TypeError, ValueError) as e:
             raise e
 
-    def cnn_train(self, x_train, y_train, epochs: int = 10, batch_size: int = 32) -> None:
+    def cnn_train(self, x_train, y_train, epochs: int = 15, batch_size: int = 32) -> None:
         """
         Addestra il modello CNN sui dati di training.
 
