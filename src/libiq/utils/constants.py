@@ -7,12 +7,10 @@ if PLATFORM == 'Colosseum':
     CAPTURES_PATH = '/iq_samples/'
     LIBRARY_PATH = '/root/'
 elif PLATFORM == 'local':
-    #CAPTURES_PATH = '/home/wines/spear-dApp/logs/'
-    #LIBRARY_PATH = '/home/wines/'
-    #CAPTURES_PATH = '/home/user/Desktop/iq_samples/'
+    CAPTURES_PATH = '/home/wines/spear-dApp/logs/'
+    LIBRARY_PATH = '/home/wines/'
+    #CAPTURES_PATH = '/home/user/Desktop/catture/'
     #LIBRARY_PATH = '/home/user/Desktop/'
-    CAPTURES_PATH = '/home/user/Desktop/catture/'
-    LIBRARY_PATH = '/home/user/Desktop/'
 elif PLATFORM == 'Docker':
     CAPTURES_PATH = '/home/user/iq_samples/'
     LIBRARY_PATH = '/home/user/'
@@ -45,7 +43,9 @@ LABELS = {
     'Undefined': -1,
     'No RFI': 0,
     'Jammer': 1,
-    'Radar': 2
+    'Radar': 2,
+    'Triangular': 3,
+    'Square': 4
 }
 
 PLOT_LABELS = [
@@ -56,7 +56,9 @@ PLOT_LABELS = [
     #'Undefined',
     'No RFI',
     'Jammer',
-    'Radar'
+    'Radar',
+    'Triangular',
+    'Square'
 ]
 
 STATIC_LABELS = {
@@ -66,7 +68,9 @@ STATIC_LABELS = {
     #3: 'Noise'
     0: 'No RFI',
     1: 'Jammer',
-    2: 'Radar'
+    2: 'Radar',
+    3: 'Triangular',
+    4: 'Square'
 }
 
 COLUMNS_LIST = {
@@ -77,7 +81,7 @@ COLUMNS_LIST = {
 }
 
 N_CLUSTERS = 4
-N_LABELS = 4
+N_LABELS = 5
 
 DATA_FORMAT_OPTIONS = ['real-imag', 'phase-magnitude', 'all']
 NORMALIZATION_TYPES = ['RobustScaler', 'MinMax', 'TimeSeriesScalerMeanVariance', None]  #da sistemare tutte perchè non vanno

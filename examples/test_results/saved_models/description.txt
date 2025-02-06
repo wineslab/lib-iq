@@ -1,0 +1,25 @@
+Folder model1: 
+    trained on: 
+        No RFI, Radar, Jammer
+    Lenght 1536
+    Accuracy 0,993
+
+Folder model2: 
+    trained on: 
+        No RFI, Radar, Jammer, Triangular
+    Lenght 1536
+    Accuracy 0,998
+
+Folder model3: 
+    trained on: 
+        No RFI, Radar, Jammer, Triangular, Square
+    Lenght 1536
+    Accuracy 0,999
+    epochs: 15
+    
+Folder model4: 
+    trained on: 
+        No RFI, Radar, Jammer, Triangular, Square
+    Lenght 1536
+    Accuracy 0,994
+    epochs: 10

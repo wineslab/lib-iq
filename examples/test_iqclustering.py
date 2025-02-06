@@ -104,7 +104,7 @@ def main():
     classification_model = Classifier(timeseries_size=1536, model_path=f"{CNN_MODEL_PATH}best_model.keras")
 
     for n_files in [1]:
-        for n_samples in [1536]:
+        for n_samples in [1536*1]:
             create_dataset_from_bin(files, n_files, OUTPUT_PATH, f"{COMBINED_CSV_FILE_PATH}combined_output.csv", n_samples)                
 
             x_train, x_test, y_train, y_test = preprocess_data(f"{COMBINED_CSV_FILE_PATH}combined_output.csv", TEST_SIZE, RANDOM_STATE, REPORT_PATH, mode=MODE, reports=REPORTS)

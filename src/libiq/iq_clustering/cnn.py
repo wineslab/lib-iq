@@ -93,6 +93,45 @@ class Classifier:
         except Exception as e:
             print(f"Errore imprevisto: {e}")
 
+    def plot_loss_curve(self, history: dict, path: str = ''):
+        """
+        Plotta la curva della loss per il training e la validazione.
+
+        Args:
+            history (dict): Dizionario contenente la cronologia del training (es. history.history da model.fit)
+                            che deve contenere le chiavi 'loss' e 'val_loss'.
+            path (str): Path dove salvare il plot (se vuoto, il plot viene mostrato interattivamente).
+        """
+        try:
+            # Verifica che il dizionario history contenga le chiavi necessarie
+            if not history or 'loss' not in history or 'val_loss' not in history:
+                raise ValueError("Il dizionario history deve contenere le chiavi 'loss' e 'val_loss'.")
+
+            epochs = range(1, len(history['loss']) + 1)
+
+            plt.figure(figsize=(8, 6))
+            plt.plot(epochs, history['loss'], 'bo-', label='Training Loss')
+            plt.plot(epochs, history['val_loss'], 'ro-', label='Validation Loss')
+            plt.title("Training e Validation Loss")
+            plt.xlabel("Epoche")
+            plt.ylabel("Loss")
+            plt.legend()
+            plt.grid(True)
+
+            if PLOTS_MODE == 'interactive':
+                plt.show()
+            else:
+                if path != '':
+                    plt.savefig(path, format='pdf')
+                    plt.close()
+                else:
+                    raise ValueError("Il path per salvare il plot è vuoto. Fornisci un path valido o imposta PLOTS_MODE a 'interactive'.")
+        except ValueError as ve:
+            print(f"Errore: {ve}")
+        except Exception as e:
+            print(f"Errore imprevisto: {e}")
+
+
     def cnn_metrics(self, y_true: List[int], y_pred: List[int], path: str = '') -> Tuple[float, float, float, float]:
         """
         Calcola e stampa le metriche di classificazione (accuracy, precision, recall, F1 score) e plotta la matrice di confusione.
@@ -184,7 +223,7 @@ class Classifier:
         except (TypeError, ValueError) as e:
             raise e
 
-    def cnn_train(self, x_train, y_train, epochs: int = 15, batch_size: int = 32) -> None:
+    def cnn_train(self, x_train, y_train, epochs: int = 10, batch_size: int = 32) -> None:
         """
         Addestra il modello CNN sui dati di training.
 
@@ -248,6 +287,7 @@ class Classifier:
                 verbose=1,
             )
 
+            self.plot_loss_curve(history.history, path=f'{PLOTS_PATH}loss_curve_train.pdf')
             # Valutazione sui dati di training
             y_train_pred = np.argmax(model.predict(x_train_array), axis=1)
             self.cnn_metrics(y_train_array, y_train_pred, f'{PLOTS_PATH}confusion_matrix_train.pdf')
