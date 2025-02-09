@@ -8,7 +8,7 @@ from collections import defaultdict
 from yellowbrick.cluster import SilhouetteVisualizer
 from sklearn.metrics import silhouette_score
 from sklearn.base import BaseEstimator
-from libiq.iq_clustering.preprocessing import load_csv, aggregate_columns
+from libiq.iq_clustering.preprocessing import load_csv
 from tslearn.clustering import TimeSeriesKMeans
 import matplotlib.patches as mpatches
 from sklearn import metrics as metr

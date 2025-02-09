@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from typing import List, Union, Tuple, Dict
 from libiq.utils.constants import STATIC_LABELS, COMBINED_CSV_FILE_PATH, ORIGINAL_COMBINED_CSV_FILE_PATH, LABELS, MODE
-from libiq.iq_clustering.preprocessing import load_csv, aggregate_columns
+from libiq.iq_clustering.preprocessing import load_csv
 import shutil
 from scipy.stats import skew, kurtosis
 from scipy.signal import periodogram

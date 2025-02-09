@@ -1,271 +1,276 @@
+import os
+import multiprocessing
 import numpy as np
 import pandas as pd
-import os
 import cmath
 import multiprocessing
-from typing import Generator, List, Dict, Tuple
-from libiq.utils.constants import DTYPE, DATA_FORMAT, CHUNK_SIZE, N_JOBS, COLUMNS_LIST, DATA_FORMAT_OPTIONS
+from typing import List, Dict, Tuple
 
-# =============================================================================
-# 1) Funzione per ricavare i nomi delle colonne dal DATA_FORMAT
-# =============================================================================
-def columns_name(data_format: str) -> List[str]:
-    if data_format not in COLUMNS_LIST:
-        raise ValueError(f"Unknown value for data format: {data_format}")
-    return COLUMNS_LIST[data_format]
+def delete_csv_files(directory: str) -> None:
+    """
+    Deletes all CSV files in the specified directory.
 
-# =============================================================================
-# 2) Eliminazione dei file CSV pre-esistenti in una directory
-# =============================================================================
-def delete_csv_files(output_path: str) -> None:
-    if not os.path.exists(output_path):
-        raise FileNotFoundError(f"The specified path does not exist: {output_path}")
+    Raises:
+        FileNotFoundError: If the specified directory does not exist.
+        ValueError: If there are non-CSV files in the directory.
+    """
+    if not os.path.exists(directory):
+        raise FileNotFoundError(f"The specified directory does not exist: {directory}")
 
-    files = os.listdir(output_path)
+    files = os.listdir(directory)
     non_csv_files = [f for f in files if not f.endswith('.csv')]
     if non_csv_files:
-        raise ValueError(f"There are non-.csv files in the directory: {non_csv_files}")
+        raise ValueError(f"Non-CSV files found in the directory: {non_csv_files}")
 
     for file in files:
-        file_path = os.path.join(output_path, file)
         if file.endswith('.csv'):
-            os.remove(file_path)
+            os.remove(os.path.join(directory, file))
     
-    print(f"\nAll CSV files in {output_path} have been deleted.")
+    print(f"All CSV files in '{directory}' have been deleted.")
 
-# =============================================================================
-# 3) Combina più file CSV in un unico file
-# =============================================================================
-def combine_csv(csv_files: List[str], combined_csv_file_path: str) -> None:
-    print("Combining all .csv into one")
-    try:
-        for file_path in csv_files:
-            if not os.path.exists(file_path):
-                raise FileNotFoundError(f"File not found: {file_path}")
-            
-            # Legge il CSV a chunk
-            chunk_container = pd.read_csv(file_path, chunksize=CHUNK_SIZE)
-            for chunk in chunk_container:
-                chunk_copy = chunk.copy()
-                chunk_copy.insert(0, 'File', os.path.basename(file_path))
-                chunk_copy.to_csv(
-                    combined_csv_file_path,
-                    mode='a',
-                    header=not os.path.exists(combined_csv_file_path),
-                    index=False
-                )
-        
-        print(f"All CSV files have been combined into {combined_csv_file_path}.")
-    
-    except (FileNotFoundError, ValueError) as e:
-        raise e
-    except Exception as e:
-        raise ValueError(f"Error processing file {file_path}: {e}")
 
-# =============================================================================
-# 4) Lettura dati binari (Approccio B: chunk di (re, im) interlacciati)
-# =============================================================================
-def read_data(file_path: str, dtype: np.dtype) -> Generator[np.ndarray, None, None]:
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"The specified file path does not exist: {file_path}")
-
-    try:
-        with open(file_path, 'rb') as f:
-            while True:
-                data = np.fromfile(f, dtype=dtype, count=CHUNK_SIZE * 2)
-                if data.size == 0:
-                    break
-                data = data.reshape(-1, 2)
-                # Converte in numeri complessi (float32)
-                complex_data = data[:, 0].astype(np.float32) + 1j * data[:, 1].astype(np.float32)
-                yield complex_data
-    except Exception as e:
-        raise ValueError(f"An error occurred while reading the binary data: {e}")
-
-# =============================================================================
-# 5) Processamento di un singolo campione complesso
-# =============================================================================
-def process_sample(complex_num: complex, data_format: str, ground_truth: int) -> List:
-    if data_format == 'real-imag':
-        return [complex_num.real, complex_num.imag, ground_truth]
-    elif data_format == 'phase-magnitude':
-        phase = cmath.phase(complex_num)
-        magnitude = abs(complex_num)
-        magnitude_dB = 20 * np.log10(magnitude) if magnitude > 0 else 0
-        return [phase, magnitude_dB, ground_truth]
-    elif data_format == 'all':
-        phase = cmath.phase(complex_num)
-        magnitude = abs(complex_num)
-        magnitude_dB = 20 * np.log10(magnitude) if magnitude > 0 else 0
-        return [complex_num.real, complex_num.imag, phase, magnitude_dB, ground_truth]
-    elif data_format == 'complex':
-        return [complex_num, ground_truth]
-    else:
-        raise ValueError(f"Unknown value for data format: {data_format}")
-
-# =============================================================================
-# 6) Gestione di un singolo file binario -> produce file CSV
-# =============================================================================
-def handle_message(file_path: str,
-                   ground_truth: int,
-                   n_samples: float,
-                   output_path: str,
-                   num_files: int,
-                   fft_filter: Tuple[float, float] = (-float('inf'), float('inf'))
-                   ) -> None:
+def combine_csv_files(csv_files: List[str], output_file: str) -> None:
     """
-    Legge i dati binari a blocchi, applica eventualmente il filtro in dominio della frequenza,
-    processa ciascun campione e scrive i risultati su più CSV.
+    Combines multiple CSV files into a single CSV file.
+    A new column 'File' is inserted to record the source file name.
+
+    Raises:
+        FileNotFoundError: If any of the CSV files is not found.
+        ValueError: If there are no CSV files to combine.
+    """
+    dataframes = []
+    for file_path in csv_files:
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"File not found: {file_path}")
+        df = pd.read_csv(file_path)
+        df.insert(0, 'File', os.path.basename(file_path))
+        dataframes.append(df)
+    
+    if not dataframes:
+        raise ValueError("No CSV files to combine.")
+    
+    combined_df = pd.concat(dataframes, ignore_index=True)
+    combined_df.to_csv(output_file, index=False)
+    print(f"All CSV files have been combined into '{output_file}'.")
+
+
+def read_binary_data(file_path: str, dtype: np.dtype) -> np.ndarray:
+    """
+    Reads a binary file and converts it into a NumPy array of complex numbers.
+
+    Raises:
+        FileNotFoundError: If the specified file path does not exist.
+        ValueError: If the binary file does not contain an even number of elements.
     """
     if not os.path.exists(file_path):
-        raise FileNotFoundError(f"The specified file path does not exist: {file_path}")
-
-    counter = 0         # campioni accumulati nel CSV corrente
-    file_counter = 1    # indice del CSV corrente
-    message: List[List] = []
-    total_samples_written = 0  # campioni totali processati
-    saved_files = []  # Lista per tenere traccia dei file creati
-
-    def save_to_csv(msg: List[List], f_counter: int) -> None:
-        if not msg:
-            return
-        file_name = os.path.join(output_path, f'{os.path.splitext(os.path.basename(file_path))[0]}_{f_counter}.csv')
-        df = pd.DataFrame(msg, columns=columns_name(DATA_FORMAT))
-        try:
-            df.to_csv(file_name, mode='a', header=not os.path.exists(file_name), index=False)
-            saved_files.append((file_name, len(msg)))  # Registra il file e il numero di righe scritte
-        except Exception as e:
-            raise ValueError(f"Error writing to CSV file {file_name}: {e}")
-
+        raise FileNotFoundError(f"The specified path does not exist: {file_path}")
+    
     try:
-        for chunk_complex_data in read_data(file_path, DTYPE):
-            if fft_filter != (-float('inf'), float('inf')):
-                freq_min, freq_max = int(fft_filter[0]), int(fft_filter[1])
-                n = len(chunk_complex_data)
-                freq_min = max(0, freq_min)
-                freq_max = min(n, freq_max)
-                fft_data = np.fft.fft(chunk_complex_data)
-                selected_bins = np.concatenate((fft_data[freq_min:freq_max], fft_data[-freq_max:-freq_min]))
-                chunk_complex_data = np.fft.ifft(selected_bins, n=selected_bins.size)
-
-            for c in chunk_complex_data:
-                if file_counter > num_files:
-                    break  # raggiunto il numero massimo di CSV
-
-                csv_row = process_sample(c, DATA_FORMAT, ground_truth)
-                message.append(csv_row)
-                counter += 1
-                total_samples_written += 1
-
-                if counter == CHUNK_SIZE:
-                    save_to_csv(message, file_counter)
-                    message = []
-                    counter = 0
-
-                    if total_samples_written >= n_samples:
-                        file_counter += 1
-
-                if total_samples_written == n_samples:
-                    save_to_csv(message, file_counter)
-                    message = []
-                    counter = 0
-                    file_counter += 1
-                    if file_counter > num_files:
-                        break
-
-            if file_counter > num_files:
-                break
-
-        if message and file_counter <= num_files:
-            save_to_csv(message, file_counter)
-
-        # Controllo finale: verifica se il numero totale di campioni scritti corrisponde a n_samples
-        for file_name, num_rows in saved_files:
-            if num_rows != n_samples:
-                print(f"⚠️ WARNING: The file '{file_name}' contains {num_rows} samples instead of {n_samples}.")
-
+        data = np.fromfile(file_path, dtype=dtype)
+        if data.size % 2 != 0:
+            raise ValueError("The binary file does not contain an even number of elements.")
+        data = data.reshape(-1, 2)
+        complex_data = data[:, 0] + 1j * data[:, 1]
+        return complex_data
     except Exception as e:
-        raise ValueError(f"Error processing file {file_path}: {e}")
+        raise ValueError(f"Error reading binary data: {e}")
 
 
-# =============================================================================
-# 7) Creazione dataset da file binari
-# =============================================================================
+def apply_fft_filter(data: np.ndarray, fft_filter: Tuple[float, float]) -> np.ndarray:
+    """
+    Applies a frequency-domain filter to the data.
+    
+    Parameters:
+        data: Array of complex numbers.
+        fft_filter: Tuple (freq_min, freq_max). If (-inf, inf), the data is returned unchanged.
+    
+    Returns:
+        The filtered data obtained via IFFT.
+    """
+    freq_min, freq_max = fft_filter
+    if freq_min == -float('inf') and freq_max == float('inf'):
+        return data
+
+    n = len(data)
+    fft_data = np.fft.fft(data)
+    filtered_fft = np.zeros_like(fft_data)
+
+    freq_min = int(max(0, freq_min))
+    freq_max = int(min(n // 2, freq_max))
+
+    filtered_fft[freq_min:freq_max] = fft_data[freq_min:freq_max]
+
+    if freq_min != 0:
+        filtered_fft[-freq_max:-freq_min] = fft_data[-freq_max:-freq_min]
+    filtered_data = np.fft.ifft(filtered_fft)
+    return filtered_data
+
+
+def process_samples_vectorized(data: np.ndarray, ground_truth: int) -> pd.DataFrame:
+    """
+    Converts an array of complex numbers into a DataFrame with columns according to the desired format.
+
+    Parameters:
+        data: Array of complex numbers.
+        ground_truth: Label associated with the data.
+    
+    Returns:
+        A pandas DataFrame containing the processed data.
+    """
+    df = pd.DataFrame()
+    df['Real'] = np.real(data)
+    df['Imaginary'] = np.imag(data)
+    df['Phase'] = np.angle(data)
+    magnitude = np.abs(data)
+    with np.errstate(divide='ignore'):
+        magnitude_dB = 20 * np.log10(magnitude)
+    magnitude_dB[np.isneginf(magnitude_dB)] = 0
+    df['Magnitude'] = magnitude_dB
+    df['Labels'] = ground_truth
+    
+    return df
+
+
+def split_dataframe(df: pd.DataFrame, n_samples: int, num_files: int) -> Dict[int, pd.DataFrame]:
+    """
+    Splits a DataFrame into multiple DataFrames, each containing n_samples rows.
+    A maximum of num_files splits are created.
+
+    Returns:
+        A dictionary where the key is the file index (starting from 1) and the value is the corresponding DataFrame.
+    """
+    dfs = {}
+    max_samples = n_samples * num_files
+    df = df.iloc[:max_samples]
+    for i in range(num_files):
+        start = i * n_samples
+        end = start + n_samples
+        chunk = df.iloc[start:end]
+        if chunk.empty:
+            break
+        dfs[i + 1] = chunk
+    return dfs
+
+
+def save_dataframes_to_csv(dataframes: Dict[int, pd.DataFrame], base_filename: str, output_path: str) -> List[Tuple[str, int]]:
+    """
+    Saves each DataFrame in the dictionary to a CSV file.
+
+    The file names are constructed based on the base filename and the file index.
+
+    Returns:
+        A list of tuples (file_path, number_of_rows).
+    """
+    saved_files = []
+    base_name = os.path.splitext(os.path.basename(base_filename))[0]
+    for file_index, df in dataframes.items():
+        file_name = f"{base_name}_{file_index}.csv"
+        file_path = os.path.join(output_path, file_name)
+        df.to_csv(file_path, index=False)
+        saved_files.append((file_path, len(df)))
+    return saved_files
+
+
+def process_binary_file(file_path: str,
+                        ground_truth: int,
+                        output_path: str,
+                        n_samples: int,
+                        num_files: int,
+                        dtype: np.dtype,
+                        fft_filter: Tuple[float, float] = (-float('inf'), float('inf'))
+                        ) -> List[str]:
+    """
+    Processes a binary file:
+      1. Reads the entire file and converts it to complex numbers.
+      2. Applies an optional FFT filter.
+      3. Converts the samples into the desired format.
+      4. Splits the data into multiple CSV files (each containing n_samples samples, up to num_files files).
+
+    Returns:
+        A list of file paths for the saved CSV files.
+    """
+    data = read_binary_data(file_path, dtype)
+    
+    data = apply_fft_filter(data, fft_filter)
+    
+    df = process_samples_vectorized(data, ground_truth)
+    
+    df_chunks = split_dataframe(df, n_samples, num_files)
+    
+    saved_files_info = save_dataframes_to_csv(df_chunks, file_path, output_path)
+    
+    for file_name, num_rows in saved_files_info:
+        if num_rows != n_samples:
+            print(f"The file '{file_name}' contains {num_rows} samples instead of {n_samples}.")
+    
+    return [file_name for file_name, _ in saved_files_info]
+
+
 def create_dataset_from_bin(files: Dict[str, int],
                             num_files: int,
                             output_path: str,
                             combined_output_path: str,
-                            n_samples: float = float('inf'),
-                            fft_filter: Tuple[float, float] = (-float('inf'), float('inf'))
+                            n_samples: int,
+                            dtype: np.dtype = np.int16,
+                            fft_filter: Tuple[float, float] = (-float('inf'), float('inf')),
                             ) -> None:
     """
-    Converte i file binari in CSV (fino a num_files per ciascun binario),
-    applicando eventualmente un filtro in dominio della frequenza, e poi combina
-    tutti i CSV in un unico file.
+    Converts a set of binary files into CSV files (up to num_files per binary file),
+    optionally applying a frequency-domain filter, and finally combines all CSV files into one.
+
+    Parameters:
+        files: Dictionary mapping the binary file path to its label.
+        num_files: Maximum number of CSV files to create per binary file.
+        output_path: Directory where the CSV files will be saved.
+        combined_output_path: Path for the combined CSV file.
+        n_samples: Number of samples per CSV file.
+        fft_filter: Frequency filter to apply (default: no filter).
     """
-    try:
-        if DATA_FORMAT not in DATA_FORMAT_OPTIONS:
-            raise ValueError("Data format not available")
-        
-        file_names = list(files.keys())
-        ground_truths = list(files.values())
-
-        # Elimina eventuali CSV pre-esistenti nella cartella di output
-        delete_csv_files(output_path)
-
-        # Esecuzione in parallelo di handle_message, propagando fft_filter
-        with multiprocessing.Pool(processes=N_JOBS) as pool:
-            pool.starmap(
-                handle_message,
-                zip(
-                    file_names,
-                    ground_truths,
-                    [n_samples] * len(file_names),
-                    [output_path] * len(file_names),
-                    [num_files] * len(file_names),
-                    [fft_filter] * len(file_names)  # Propagazione del filtro
-                )
-            )
-
-        # Recupera tutti i file CSV generati
-        csv_files = [
-            os.path.join(output_path, f"{os.path.splitext(os.path.basename(file))[0]}_{i}.csv")
-            for file in files
-            for i in range(1, num_files + 1)
-            if os.path.exists(os.path.join(output_path, f"{os.path.splitext(os.path.basename(file))[0]}_{i}.csv"))
-        ]
-
-        if not csv_files:
-            raise FileNotFoundError("None of the specified CSV files were found.")
-
-        combine_csv(csv_files, combined_output_path)
+    delete_csv_files(output_path)
     
-    except (ValueError, FileNotFoundError) as e:
-        raise e
-    except Exception as e:
-        raise ValueError(f"An error occurred: {e}")
+    csv_files = []
+    with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
+        results = []
+        for file_path, ground_truth in files.items():
+            result = pool.apply_async(
+                process_binary_file,
+                args=(file_path, ground_truth, output_path, n_samples, num_files, dtype, fft_filter)
+            )
+            results.append(result)
+        pool.close()
+        pool.join()
+        
+        for res in results:
+            csv_files.extend(res.get())
+    
+    if not csv_files:
+        raise FileNotFoundError("No CSV file was created.")
+    
+    combine_csv_files(csv_files, combined_output_path)
 
-# =============================================================================
-# 8) Creazione dataset da file CSV esistenti (se serve)
-# =============================================================================
+
 def create_dataset_from_csv(files: Dict[str, int],
                             num_files: int,
                             output_path: str,
                             combined_csv_file_path: str) -> None:
-    try:
-        csv_files = [
-            os.path.join(output_path, f"{os.path.splitext(os.path.basename(file))[0]}_{i}.csv")
-            for file in files
-            for i in range(1, num_files + 1)
-            if os.path.exists(os.path.join(output_path, f"{os.path.splitext(os.path.basename(file))[0]}_{i}.csv"))
-        ]
-
-        if not csv_files:
-            raise FileNotFoundError("None of the specified CSV files were found.")
-
-        combine_csv(csv_files, combined_csv_file_path)
+    """
+    Combines the CSV files (already created) into a single CSV file.
     
-    except FileNotFoundError as e:
-        raise e
-    except Exception as e:
-        raise ValueError(f"An error occurred: {e}")
+    Parameters:
+        files: Dictionary mapping the original binary file path to its label.
+        num_files: Maximum number of CSV files per binary file (used to reconstruct file names).
+        output_path: Directory containing the CSV files.
+        combined_csv_file_path: Path for the combined CSV file.
+    """
+    csv_files = []
+    for file in files.keys():
+        base_name = os.path.splitext(os.path.basename(file))[0]
+        for i in range(1, num_files + 1):
+            csv_file = os.path.join(output_path, f"{base_name}_{i}.csv")
+            if os.path.exists(csv_file):
+                csv_files.append(csv_file)
+    
+    if not csv_files:
+        raise FileNotFoundError("No specified CSV files were found.")
+    
+    combine_csv_files(csv_files, combined_csv_file_path)
