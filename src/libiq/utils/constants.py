@@ -89,8 +89,8 @@ COLUMNS = ['Real', 'Imaginary', 'Magnitude']
 DTYPE = np.int16    #for spear dapp
 #DTYPE = np.complex64
 TEST_SIZE = 0.2
-RANDOM_STATE = 7
-N_EPOCHS = 12
+RANDOM_STATE = 8
+N_EPOCHS = 13
 
 PLOT_FONT_FAMILY = 'DejaVu Sans'
 PLOT_FIGURE_SIZE = (10, 7)

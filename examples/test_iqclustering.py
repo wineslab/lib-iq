@@ -83,7 +83,7 @@ def main():
 
     files = load_captures()
 
-    classification_model = Classifier(timeseries_size=1536*1)
+    classification_model = Classifier(timeseries_size=1536*15)
 
     for n_files in [1]:
         for n_samples in [classification_model.timeseries_size]:

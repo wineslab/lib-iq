@@ -14,9 +14,7 @@ from libiq.utils.constants import (
     PLOTS_MODE, 
     N_LABELS, 
     CNN_MODEL_PATH, 
-    LABELS, 
     PLOT_LABELS, 
-    PLOT_CONFUSION_MATRIX, 
     STATIC_LABELS,
     RANDOM_STATE,
     N_EPOCHS
@@ -38,14 +36,21 @@ np.random.seed(RANDOM_STATE)
 tf.random.set_seed(RANDOM_STATE)
 
 
-
 class Classifier:
     def __init__(self, timeseries_size: int = 1536, model_path: str = None):
         self.timeseries_size = timeseries_size
+
         if model_path is not None:
             self.model = keras.models.load_model(model_path)
         else:
             self.model = None
+
+        if timeseries_size > 1536:
+            self.buffer = np.empty((0, 2))
+        else:
+            self.buffer = None
+
+        self.last_prediction = None
 
     def load_model(self, model_path: str = None):
         if model_path is not None:
@@ -54,9 +59,31 @@ class Classifier:
             self.model = None
 
     def predict(self, iq_data):
-        preprocessed_data = self.preprocessing(iq_data)
-        result = self.cnn_test_dapp(preprocessed_data, self.timeseries_size)
-        return result
+        if self.buffer is not None:
+
+            iq_data_arr = np.array(iq_data).reshape(-1, 2)
+            self.buffer = np.concatenate((self.buffer, iq_data_arr), axis=0)
+
+            if self.buffer.shape[0] < self.timeseries_size:
+                return self.last_prediction
+
+            if self.buffer.shape[0] == self.timeseries_size:
+                data_to_predict = self.buffer
+                self.buffer = np.empty((0, 2))
+            else:
+                data_to_predict = self.buffer[:self.timeseries_size]
+                self.buffer = self.buffer[self.timeseries_size:]
+            
+            preprocessed_data = self.preprocessing(data_to_predict)
+            result = self.cnn_test_dapp(preprocessed_data, self.timeseries_size)
+            self.last_prediction = result
+            return result
+
+        else:
+            preprocessed_data = self.preprocessing(iq_data)
+            result = self.cnn_test_dapp(preprocessed_data, self.timeseries_size)
+            self.last_prediction = result
+            return result
 
     def plot_confusion_matrix(self, cm: List[List[int]], class_names: List[str], path: str = ''):
         try:
@@ -240,18 +267,17 @@ class Classifier:
             raise e
 
     def cnn_test_dapp(self, x: np.ndarray, timeseries_size: int) -> int:
-
         if self.model is None:
             raise ValueError("The model was not loaded correctly.")
 
         if x is None or len(x) == 0:
-            raise ValueError("La time series di input è vuota o None.")
+            raise ValueError("The input timeseries is empty or None.")
 
         if x.ndim == 1:
             x = np.expand_dims(x, axis=-1)
         elif x.ndim == 2:
             if x.shape[-1] != 4:
-                raise ValueError(f"Ci dovrebbero essere 4 canali; ricevuti {x.shape[-1]}.")
+                raise ValueError(f"Expected 4 channels; received {x.shape[-1]}.")
 
         if x.ndim == 2:
             x = np.expand_dims(x, axis=0)
