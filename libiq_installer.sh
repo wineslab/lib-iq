@@ -13,7 +13,6 @@ FFTW_ARCHIVE="$LIBS_DIR/fftw-3.3.10.tar.gz"
 FFTW_DIR="$LIBS_DIR/fftw-3.3.10"
 MATIO_DIR="$LIBS_DIR/matio"
 LIBSIGMF_DIR="$LIBS_DIR/libsigmf"
-IQ_CLUSTERING_DIR="$LIBS_DIR/iq_clustering"
 
 # Percorsi di installazione
 ZLIB_INCLUDE="/usr/local/include/zlib.h"
@@ -75,7 +74,7 @@ if [ -d "$BASE_DIR" ]; then
     echo "La directory $BASE_DIR esiste già. Salto git clone e l'inizializzazione dei submodules."
 else
     echo "Clonazione del repository libiq..."
-    git clone --branch iq_clustering https://github.com/wineslab/libiq.git "$BASE_DIR" || { echo "Errore durante il clonaggio di libiq."; exit 1; }
+    git clone --branch libiq_clean https://github.com/wineslab/libiq.git "$BASE_DIR" || { echo "Errore durante il clonaggio di libiq."; exit 1; }
 
     # Entrare nella directory principale
     echo "Entering $BASE_DIR/"
@@ -124,7 +123,7 @@ pip install --upgrade pip || { echo "Errore durante l'aggiornamento di pip."; ex
 
 #./apply_setup.sh
 
-#echo "iq_clustering installed successfully!"
+#echo "libiq installed successfully!"
 
 check_python_package "matplotlib"
 

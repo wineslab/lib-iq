@@ -411,7 +411,7 @@ std::vector<std::vector<double>> Analyzer::generate_IQ_Spectrogram(const std::ve
 // ============================================================================
 // Real part extraction functions
 // ============================================================================
-std::vector<double> Analyzer::real_part_iq_sample(const std::string& input_file_path, IQDataType data_type) {
+std::vector<double> Analyzer::real_part_iq_samples(const std::string& input_file_path, IQDataType data_type) {
     std::vector<std::complex<double>> iq_sample = read_iq_samples(input_file_path, data_type);
     std::vector<double> result;
     result.reserve(iq_sample.size());
@@ -421,7 +421,7 @@ std::vector<double> Analyzer::real_part_iq_sample(const std::string& input_file_
     return result;
 }
 
-std::vector<double> Analyzer::real_part_iq_sample(const std::vector<std::vector<double>>& iq_samples, int start_sample, int end_sample) {
+std::vector<double> Analyzer::real_part_iq_samples(const std::vector<std::vector<double>>& iq_samples, int start_sample, int end_sample) {
     std::vector<double> result;
     if (iq_samples.empty() || start_sample < 0 || end_sample <= start_sample || start_sample >= static_cast<int>(iq_samples.size())) {
         std::cerr << "Error: Invalid sample range or empty input data." << std::endl;
@@ -440,7 +440,7 @@ std::vector<double> Analyzer::real_part_iq_sample(const std::vector<std::vector<
 // ============================================================================
 // Imaginary part extraction functions
 // ============================================================================
-std::vector<double> Analyzer::complex_part_iq_sample(const std::string& input_file_path, IQDataType data_type) {
+std::vector<double> Analyzer::imaginary_part_iq_samples(const std::string& input_file_path, IQDataType data_type) {
     std::vector<std::complex<double>> iq_sample = read_iq_samples(input_file_path, data_type);
     std::vector<double> result;
     result.reserve(iq_sample.size());
@@ -450,7 +450,7 @@ std::vector<double> Analyzer::complex_part_iq_sample(const std::string& input_fi
     return result;
 }
 
-std::vector<double> Analyzer::complex_part_iq_sample(const std::vector<std::vector<double>>& iq_samples, int start_sample, int end_sample) {
+std::vector<double> Analyzer::imaginary_part_iq_samples(const std::vector<std::vector<double>>& iq_samples, int start_sample, int end_sample) {
     std::vector<double> result;
     if (iq_samples.empty() || start_sample < 0 || end_sample <= start_sample || start_sample >= static_cast<int>(iq_samples.size())) {
         std::cerr << "Error: Invalid sample range or empty input data." << std::endl;

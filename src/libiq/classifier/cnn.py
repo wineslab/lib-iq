@@ -5,14 +5,24 @@ import pandas as pd
 from pathlib import Path
 import seaborn as sns
 import matplotlib.pyplot as plt
+from matplotlib import rcParams
 from collections import Counter
 from typing import List, Tuple
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+import scienceplots
+from libiq.plotter.loss_curve import plot_loss_curve
+from libiq.plotter.confusion_matrix import plot_confusion_matrix
+
+plt.style.use(['science','no-latex'])
+rcParams['mathtext.fontset'] = 'stix'
+rcParams['font.family'] = 'STIXGeneral'
+rcParams['font.size'] = 14
+rcParams['legend.fontsize'] = "medium"
+rcParams['axes.grid'] = False
+plt.tight_layout(pad=0.05)
 
 from libiq.utils.constants import (
     PLOTS_PATH, 
-    PLOTS_MODE, 
-    N_LABELS, 
     CNN_MODEL_PATH, 
     PLOT_LABELS, 
     STATIC_LABELS,
@@ -37,15 +47,16 @@ tf.random.set_seed(RANDOM_STATE)
 
 
 class Classifier:
-    def __init__(self, timeseries_size: int = 1536, model_path: str = None):
-        self.timeseries_size = timeseries_size
+    def __init__(self, time_window: int = 1, input_vector: int = 1536, model_path: str = None):
+        self.time_window = time_window
+        self.input_vector = input_vector
 
         if model_path is not None:
             self.model = keras.models.load_model(model_path)
         else:
             self.model = None
 
-        if timeseries_size > 1536:
+        if time_window > 1536:
             self.buffer = np.empty((0, 2))
         else:
             self.buffer = None
@@ -64,85 +75,26 @@ class Classifier:
             iq_data_arr = np.array(iq_data).reshape(-1, 2)
             self.buffer = np.concatenate((self.buffer, iq_data_arr), axis=0)
 
-            if self.buffer.shape[0] < self.timeseries_size:
+            if self.buffer.shape[0] < self.time_window:
                 return self.last_prediction
 
-            if self.buffer.shape[0] == self.timeseries_size:
+            if self.buffer.shape[0] == self.time_window:
                 data_to_predict = self.buffer
                 self.buffer = np.empty((0, 2))
             else:
-                data_to_predict = self.buffer[:self.timeseries_size]
-                self.buffer = self.buffer[self.timeseries_size:]
+                data_to_predict = self.buffer[:self.time_window]
+                self.buffer = self.buffer[self.time_window:]
             
             preprocessed_data = self.preprocessing(data_to_predict)
-            result = self.cnn_test_dapp(preprocessed_data, self.timeseries_size)
+            result = self.cnn_test_dapp(preprocessed_data, self.time_window)
             self.last_prediction = result
             return result
 
         else:
             preprocessed_data = self.preprocessing(iq_data)
-            result = self.cnn_test_dapp(preprocessed_data, self.timeseries_size)
+            result = self.cnn_test_dapp(preprocessed_data, self.time_window)
             self.last_prediction = result
             return result
-
-    def plot_confusion_matrix(self, cm: List[List[int]], class_names: List[str], path: str = ''):
-        try:
-            cm = np.array(cm)
-            if cm.size == 0:
-                raise ValueError("La matrice di confusione è vuota. Fornisci una matrice valida.")
-
-            row_sums = cm.sum(axis=1, keepdims=True)
-            cm_normalized = cm / row_sums
-            cm_normalized = np.nan_to_num(cm_normalized)
-
-            plt.figure(figsize=(10, 7))
-            sns.heatmap(cm_normalized, annot=True, fmt='.3f', cmap='Blues',
-                        xticklabels=class_names, yticklabels=class_names)
-            plt.xlabel('Predicted')
-            plt.ylabel('Real')
-            plt.title('Normalized Confusion Matrix by Row')
-
-            if PLOTS_MODE == 'interactive':
-                plt.show()
-            else:
-                if path != '':
-                    plt.savefig(path, format='pdf')
-                    plt.close()
-                else:
-                    raise ValueError("Il path per salvare il plot è vuoto. Fornisci un path valido o imposta PLOTS_MODE a 'interactive'.")
-        except ValueError as ve:
-            print(f"Errore: {ve}")
-        except Exception as e:
-            print(f"Errore imprevisto: {e}")
-
-    def plot_loss_curve(self, history: dict, path: str = ''):
-        try:
-            if not history or 'loss' not in history or 'val_loss' not in history:
-                raise ValueError("Il dizionario history deve contenere le chiavi 'loss' e 'val_loss'.")
-
-            epochs = range(1, len(history['loss']) + 1)
-
-            plt.figure(figsize=(8, 6))
-            plt.plot(epochs, history['loss'], 'bo-', label='Training Loss')
-            plt.plot(epochs, history['val_loss'], 'ro-', label='Validation Loss')
-            plt.title("Training e Validation Loss")
-            plt.xlabel("Epoche")
-            plt.ylabel("Loss")
-            plt.legend()
-            plt.grid(True)
-
-            if PLOTS_MODE == 'interactive':
-                plt.show()
-            else:
-                if path != '':
-                    plt.savefig(path, format='pdf')
-                    plt.close()
-                else:
-                    raise ValueError("Il path per salvare il plot è vuoto. Fornisci un path valido o imposta PLOTS_MODE a 'interactive'.")
-        except ValueError as ve:
-            print(f"Errore: {ve}")
-        except Exception as e:
-            print(f"Errore imprevisto: {e}")
 
 
     def cnn_metrics(self, y_true: List[int], y_pred: List[int], path: str = '') -> Tuple[float, float, float, float]:
@@ -162,7 +114,7 @@ class Classifier:
             print("\tRecall:", recall)
             print("\tF1 Score:", f1)
 
-            self.plot_confusion_matrix(cm, PLOT_LABELS, path)
+            plot_confusion_matrix(cm, PLOT_LABELS, path)
 
             return acc, precision, recall, f1
         except ValueError as e:
@@ -213,7 +165,8 @@ class Classifier:
             if x_train is None or len(x_train) == 0:
                 raise ValueError("La time series di input è vuota o None.")
 
-            model = self.make_model(N_LABELS, input_shape=(self.timeseries_size,4))
+            #perchè 512 qua sotto, lo abbiamo deciso noi?
+            model = self.make_model(7, input_shape=(self.time_window*self.input_vector,4))
             keras.utils.plot_model(model, show_shapes=True, to_file=f'{CNN_MODEL_PATH}model.pdf')
 
             callbacks = [
@@ -242,7 +195,7 @@ class Classifier:
                 verbose=1,
             )
 
-            self.plot_loss_curve(history.history, path=f'{PLOTS_PATH}loss_curve_train.pdf')
+            plot_loss_curve(history.history, path=f'{PLOTS_PATH}loss_curve_train.pdf')
 
             y_train_pred = np.argmax(model.predict(x_train), axis=1)
             self.cnn_metrics(y_train, y_train_pred, f'{PLOTS_PATH}confusion_matrix_train.pdf')
@@ -266,7 +219,7 @@ class Classifier:
         except Exception as e:
             raise e
 
-    def cnn_test_dapp(self, x: np.ndarray, timeseries_size: int) -> int:
+    def cnn_test_dapp(self, x: np.ndarray, time_window: int) -> int:
         if self.model is None:
             raise ValueError("The model was not loaded correctly.")
 

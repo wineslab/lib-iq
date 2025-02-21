@@ -38,7 +38,8 @@ LABELS = {
     'Jammer': 1,
     'Radar': 2,
     'Triangular': 3,
-    'Square': 4
+    'Square': 4,
+    'LTE': 5
 }
 
 PLOT_LABELS = [
@@ -46,7 +47,8 @@ PLOT_LABELS = [
     'Jammer',
     'Radar',
     'Triangular',
-    'Square'
+    'Square',
+    'LTE'
 ]
 
 STATIC_LABELS = {
@@ -54,74 +56,18 @@ STATIC_LABELS = {
     1: 'Jammer',
     2: 'Radar',
     3: 'Triangular',
-    4: 'Square'
+    4: 'Square',
+    5: 'LTE'
 }
 
-COLUMNS_LIST = {
-    'complex': ['Complex', 'Labels'],
-    'real-imag': ['Real', 'Imaginary', 'Labels'],
-    'phase-magnitude': ['Phase', 'Magnitude', 'Labels'],
-    'all': ['Real', 'Imaginary','Phase', 'Magnitude', 'Labels']
-}
-
-N_CLUSTERS = 4
-N_LABELS = 5
-
-NORMALIZATION_TYPES = ['RobustScaler', 'MinMax', 'TimeSeriesScalerMeanVariance', None]  #da sistemare tutte perchè non vanno
-NORMALIZATION_TYPE = NORMALIZATION_TYPES[3]
-
-MODES = [None, 'Magnitude', 'all']
-
-N_INSTANTS = float(10)
-NUM_FILES = 2
-MODE = MODES[2]
 PLOTS = True
 PLOTS_MODE = ''
 PLOT_CONFUSION_MATRIX = True
 REPORTS = False
-GRID_SEARCH = False
-SCATTERPLOT_MAGNITUDE = False
-SCATTERPLOT_TIME = False
-
-DATA_FORMAT = 'all'
-COLUMNS = ['Real', 'Imaginary', 'Magnitude']
 
 DTYPE = np.int16    #for spear dapp
 #DTYPE = np.complex64
+
 TEST_SIZE = 0.2
-RANDOM_STATE = 8
-N_EPOCHS = 13
-
-PLOT_FONT_FAMILY = 'DejaVu Sans'
-PLOT_FIGURE_SIZE = (10, 7)
-
-PLOT_TRAFFIC_FIGURE_SIZE = (12, 8)
-PLOT_TRAFFIC_CMAP = 'tab10'
-
-CLUSTERS = [2, 3, 4, 5, 6, 7, 8, 9, 10]
-METRICS = ['euclidean', 'softdtw', 'dtw']
-GRIDSEARCH_INIT = ['k-means++']
-
-FILES = {
-    #f"{CAPTURES_PATH}Triangular/triangular_0.bin": LABELS['Triangular'],
-    #f"{CAPTURES_PATH}Triangular/triangular_1.bin": LABELS['Triangular'],
-
-    #f"{CAPTURES_PATH}5G/5G_0.bin": LABELS['5G'],
-    #f"{CAPTURES_PATH}5G/5G_1.bin": LABELS['5G'],
-
-    #f"{CAPTURES_PATH}Noise/noise_0.bin": LABELS['Noise'],
-    #f"{CAPTURES_PATH}Noise/noise_1.bin": LABELS['Noise'],
-
-    #f"{CAPTURES_PATH}WIFI/wifi_0.bin": LABELS['WIFI'],
-    #f"{CAPTURES_PATH}WIFI/wifi_1.bin": LABELS['WIFI'],
-}
-
-FILES_TO_LABEL = {
-    #f"{CAPTURES_PATH}Triangular/triangular_2.bin": LABELS['Triangular'],
-    
-    #f"{CAPTURES_PATH}5G/5G_2.bin": LABELS['5G'],
-    
-    #f"{CAPTURES_PATH}Noise/noise_2.bin": LABELS['Noise'],
-    
-    #f"{CAPTURES_PATH}WIFI/wifi_2.bin": LABELS['WIFI'],   
-}
+RANDOM_STATE = 11#8
+N_EPOCHS = 10

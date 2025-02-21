@@ -116,7 +116,7 @@ public:
      * @param data_type The data type of the IQ samples.
      * @return A vector of doubles containing the real part.
      */
-    std::vector<double> real_part_iq_sample(const std::string& input_file_path, IQDataType data_type);
+    std::vector<double> real_part_iq_samples(const std::string& input_file_path, IQDataType data_type);
 
     /**
      * @brief Extracts the real part from provided IQ data within a specified range.
@@ -126,7 +126,7 @@ public:
      * @param end_sample The ending sample index (exclusive).
      * @return A vector of doubles containing the real part.
      */
-    std::vector<double> real_part_iq_sample(const std::vector<std::vector<double>>& iq_samples, int start_sample, int end_sample);
+    std::vector<double> real_part_iq_samples(const std::vector<std::vector<double>>& iq_samples, int start_sample, int end_sample);
 
     /**
      * @brief Extracts the imaginary part of IQ samples from a file.
@@ -135,7 +135,7 @@ public:
      * @param data_type The data type of the IQ samples.
      * @return A vector of doubles containing the imaginary part.
      */
-    std::vector<double> complex_part_iq_sample(const std::string& input_file_path, IQDataType data_type);
+    std::vector<double> imaginary_part_iq_samples(const std::string& input_file_path, IQDataType data_type);
 
     /**
      * @brief Extracts the imaginary part from provided IQ data within a specified range.
@@ -145,7 +145,7 @@ public:
      * @param end_sample The ending sample index (exclusive).
      * @return A vector of doubles containing the imaginary part.
      */
-    std::vector<double> complex_part_iq_sample(const std::vector<std::vector<double>>& iq_samples, int start_sample, int end_sample);
+    std::vector<double> imaginary_part_iq_samples(const std::vector<std::vector<double>>& iq_samples, int start_sample, int end_sample);
 
     /**
      * @brief Extracts IQ samples (real and imaginary parts) from a file.

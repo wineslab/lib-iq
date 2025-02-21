@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "libiq"
 version = "0.1.0"
-description = "Unified libiq library including iq_clustering functionalities"
+description = "Unified libiq library including classification functionalities"
 authors = [
   { name = "Your Name", email = "you@example.com" }
 ]
@@ -24,7 +24,8 @@ dependencies = [
     "pandas",
     "numpy==1.24.3",
     "ydata-profiling",
-    "pydot"
+    "pydot",
+    "SciencePlots",
 ]
 
 [tool.setuptools.packages.find]

@@ -1,6 +1,7 @@
 import libiq
-import libiq.scatterplot as scplt
-import libiq.spectrogram as sp
+import libiq.plotter.scatterplot as scplt
+import libiq.plotter.spectrogram as sp
+import libiq.plotter.waterfall as wf
 
 import time
 
@@ -117,13 +118,13 @@ iq_samples = analyzer.get_iq_samples(input_file_path, data_type)
 print(len(iq_samples))
 '''
 
-
+'''
 iq = analyzer.get_iq_samples(input_file_path, data_type)
 fft = analyzer.generate_IQ_Spectrogram(iq, onverlap, window_size, sample_rate)
 middle_time = time.time()
 print(f"The code took {middle_time - start_time} seconds to read iq sample and to calculate fftw.")
 sp.spectrogram(fft, sample_rate, center_frequency)
-
+'''
 
 '''
 iq = analyzer.get_iq_samples(input_file_path, start, end, data_type)
