@@ -10,14 +10,14 @@ from libiq.classifier.energy_detector import energy_detector
 
 def rename_duplicate_files(files: Dict[str, int]) -> Dict[str, int]:
     """
-    Controlla se nei file in input esistono duplicati (stesso nome di file, ossia l'ultima parte del percorso).
-    In tal caso, rinomina fisicamente il file aggiungendo un suffisso numerico, in modo che ciascun file abbia un nome unico.
+    Checks if there are duplicate files in the input (i.e., files with the same filename, which is the last part of the path).
+    In such cases, it physically renames the file by appending a numeric suffix, ensuring each file has a unique name.
     
     Args:
-        files: Dizionario che mappa il percorso del file al suo label.
+        files: A dictionary mapping file paths to their labels.
     
     Returns:
-        Un nuovo dizionario con i percorsi aggiornati dei file (ognuno univoco).
+        A new dictionary with updated file paths (each unique).
     """
     seen = {}
     updated_files = {}
@@ -46,7 +46,7 @@ def rename_duplicate_files(files: Dict[str, int]) -> Dict[str, int]:
 def delete_csv_files(directory: str) -> None:
     """
     Deletes all CSV files in the specified directory.
-
+    
     Raises:
         FileNotFoundError: If the specified directory does not exist.
         ValueError: If non-CSV files are found in the directory.
@@ -95,16 +95,16 @@ def read_binary_data(file_path: str, dtype: np.dtype, max_rows: int = None) -> n
     """
     Reads a binary file and converts it into a NumPy array of complex numbers.
     Only the number of FFT rows specified by max_rows is read (if provided).
-
+    
     Parameters:
         file_path: Path to the binary file.
         dtype: Data type for reading the binary data.
         max_rows: (Optional) Maximum number of FFT rows to read.
-                  Each FFT row contains 1536 complex numbers (i.e. 1536*2 values).
-
+                  Each FFT row contains 1536 complex numbers (i.e., 1536*2 values).
+    
     Returns:
         NumPy array of complex numbers.
-
+    
     Raises:
         FileNotFoundError: If the file does not exist.
         ValueError: If the binary file does not contain an even number of elements.
@@ -129,7 +129,7 @@ def read_binary_data(file_path: str, dtype: np.dtype, max_rows: int = None) -> n
 
 def process_samples_vectorized(data: np.ndarray, ground_truth: int) -> pd.DataFrame:
     """
-    Converts an array of complex numbers into a DataFrame with columns according to the desired format.
+    Converts an array of complex numbers into a DataFrame with columns in the desired format.
     
     Parameters:
         data: Array of complex numbers.
@@ -198,6 +198,20 @@ def process_binary_file(file_path: str,
                         dtype: np.dtype,
                         extraction_window: int = 600,
                         moving_avg_window: int = 5) -> Tuple[List[str], int]:
+    """
+    Processes a binary file by:
+      - Reading only the first 'input_vector' FFT rows from the binary file.
+      - Determining the total number of FFT rows read.
+      - Reshaping the data into a matrix of shape (total_rows, 1536).
+      - Applying the energy detector for horizontal cropping and unpacking the results.
+      - Converting the flattened data into a DataFrame.
+      - Splitting the DataFrame into chunks and saving each chunk as a CSV file.
+    
+    Returns:
+        A tuple containing:
+          - A list of CSV file paths that were created.
+          - The number of samples (updated_n_samples) expected in each file.
+    """
     # Read only the first 'input_vector' FFT rows from the binary file
     data = read_binary_data(file_path, dtype, max_rows=input_vector)
     
@@ -208,13 +222,9 @@ def process_binary_file(file_path: str,
     data_matrix = data[:total_rows * 1536].reshape(total_rows, 1536)
     
     # Apply the energy detector for horizontal cropping and unpack the results.
-    updated_n_samples, cropped_matrix = energy_detector(data_matrix, extraction_window, moving_avg_window)
-    
-    # Flatten the cropped matrix in row-major order.
-    data_flat = cropped_matrix.flatten(order='C')
-    
+    updated_n_samples, cropped_data = energy_detector(data_matrix, extraction_window, moving_avg_window)    
     # Convert the flattened data into a DataFrame.
-    df = process_samples_vectorized(data_flat, ground_truth)
+    df = process_samples_vectorized(cropped_data, ground_truth)
     
     # Split the DataFrame into chunks and save each chunk as a CSV file.
     df_chunks = split_dataframe(df, updated_n_samples, num_files)
@@ -230,8 +240,8 @@ def process_binary_file(file_path: str,
 def combine_csv_files_with_check(csv_files: List[str], output_file: str, n_samples: int) -> None:
     """
     Combines multiple CSV files into a single CSV file with an additional 'File' column.
-    Checks that each file contains exactly n_samples rows. Prints the number of rows added from each file
-    and the total number of rows appended.
+    Checks that each file contains exactly n_samples rows.
+    Prints the number of rows added from each file and the total number of rows appended.
     
     Raises:
         FileNotFoundError: If any CSV file is not found.
@@ -293,16 +303,15 @@ def create_dataset_from_bin(files: Dict[str, int],
     Converts a set of binary files into CSV files (with a size check) and then combines all CSV files into one.
     
     Parameters:
-        files: A dictionary mapping the binary file path to its label.
+        files: A dictionary mapping binary file paths to their labels.
         num_files: Maximum number of CSV files to create per binary file.
         output_path: Directory where the individual CSV files will be saved.
         combined_output_path: Path for the combined CSV file.
         input_vector: Number of FFT rows (input vectors) to read from each binary file.
         dtype: Data type for reading the binary data.
-        extraction_window: Number of columns to extract around the energy peak (default 600).
+        extraction_window: Number of columns to extract around the energy peak (default 1536).
         moving_avg_window: Size of the moving average window for smoothing (default 5).
     """
-
     files = rename_duplicate_files(files)
     
     delete_csv_files(output_path)
@@ -342,12 +351,11 @@ def create_dataset_from_csv(files: Dict[str, int],
     Combines the CSV files (already created) into a single CSV file.
     
     Parameters:
-        files: A dictionary mapping the original binary file path to its label.
+        files: A dictionary mapping the original binary file paths to their labels.
         num_files: Maximum number of CSV files per binary file (used to reconstruct file names).
         output_path: Directory containing the CSV files.
         combined_csv_file_path: Path for the combined CSV file.
     """
-
     files = rename_duplicate_files(files)
     
     csv_files = []

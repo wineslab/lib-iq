@@ -22,20 +22,24 @@ def get_frequency_scale(freqs):
         return 1, "(Hz)"
 
 def get_window_size_scale(times):
-    time = times[-1] if len(times) > 0 else 0
-    if time >= 1e9:
+    t = times[-1] if len(times) > 0 else 0
+    if t >= 1e9:
         return 1e9, "(10⁹)"
-    elif time >= 1e6:
+    elif t >= 1e6:
         return 1e6, "(10⁶)"
-    elif time >= 1e3:
+    elif t >= 1e3:
         return 1e3, "(10³)"
     else:
         return 1, ""
 
 def update_y_labels(ax, num_freqs, sample_rate, center_frequency):
+    # Get the current y-axis limits
     y_lims = ax.get_ylim()
+    # Create a frequency array from -fs/2 to +fs/2, then shift by center_frequency
     freqs = np.linspace(-sample_rate / 2, sample_rate / 2, num_freqs) + center_frequency
-    y_lims = np.clip(y_lims, 0, num_freqs-1)
+    # Clip the y-axis limits to valid indices
+    y_lims = np.clip(y_lims, 0, num_freqs - 1)
+    # Determine the visible frequencies based on the current y-axis limits
     visible_freqs = freqs[int(y_lims[0]):int(y_lims[1])]
     if len(visible_freqs) == 0:
         return
@@ -44,22 +48,24 @@ def update_y_labels(ax, num_freqs, sample_rate, center_frequency):
     if (y_lims[1] - y_lims[0]) > 0:
         y_ticks = np.linspace(int(y_lims[0]), int(y_lims[1]), num_ticks)
     else:
-        y_ticks = np.linspace(0, num_freqs-1, min(num_freqs, num_ticks))
+        y_ticks = np.linspace(0, num_freqs - 1, min(num_freqs, num_ticks))
     valid_ticks = [int(y) for y in y_ticks if 0 <= int(y) < num_freqs]
     y_labels = [f"{freqs[idx] / freq_scale:.2f}" for idx in valid_ticks]
     ax.set_yticks(valid_ticks)
     ax.set_yticklabels(y_labels)
-    ax.set_ylabel(f'Frequency {freq_unit}')
+    ax.set_ylabel(f"Frequency {freq_unit}")
     plt.draw()
 
 def update_x_labels(ax, num_windows, window_duration_ms):
+    # Get the current x-axis limits
     x_lims = ax.get_xlim()
-    x_lims = np.clip(x_lims, 0, num_windows-1)
+    # Clip the x-axis limits to valid window indices
+    x_lims = np.clip(x_lims, 0, num_windows - 1)
     num_ticks = 7
     if (x_lims[1] - x_lims[0]) > 0:
         x_ticks = np.linspace(int(x_lims[0]), int(x_lims[1]), num_ticks)
     else:
-        x_ticks = np.linspace(0, num_windows-1, min(num_windows, num_ticks))
+        x_ticks = np.linspace(0, num_windows - 1, min(num_windows, num_ticks))
     x_labels = np.round(x_ticks).astype(int)
 
     time_scale, time_unit = get_window_size_scale(x_labels)
@@ -68,19 +74,21 @@ def update_x_labels(ax, num_windows, window_duration_ms):
 
     ax.set_xticks(x_ticks)
     ax.set_xticklabels(x_labels)
-    ax.set_xlabel(f'Window number {time_unit}')
+    ax.set_xlabel(f"Window number {time_unit}")
     plt.draw()
 
 def on_zoom(event, ax, num_freqs, sample_rate, center_frequency, num_windows, window_duration_ms):
+    # Update both y and x labels when zooming or panning
     update_y_labels(ax, num_freqs, sample_rate, center_frequency)
     update_x_labels(ax, num_windows, window_duration_ms)
 
 def spectrogram(spectrogram_data, sample_rate, center_frequency):
     """
-    Visualizza lo spettrogramma (matrice 2D in dB) con asse X = finestra (tempo)
-    e asse Y = frequenza, centrata su center_frequency.
+    Displays the spectrogram (2D dB matrix) with the X-axis representing windows (time)
+    and the Y-axis representing frequency, centered on center_frequency.
     """
-    spectrogram_data = np.array(spectrogram_data).T  # shape = [frequenze, time]
+    # Transpose the spectrogram data so that its shape is [frequencies, time]
+    spectrogram_data = np.array(spectrogram_data).T
     print(f"There are {spectrogram_data.shape[1]} windows of size {spectrogram_data.shape[0]}")
 
     fig, ax = plt.subplots(dpi=300)
@@ -93,18 +101,18 @@ def spectrogram(spectrogram_data, sample_rate, center_frequency):
     num_windows = spectrogram_data.shape[1]
     num_freqs = spectrogram_data.shape[0]
 
-    # Frequenze: da -fs/2 a +fs/2
+    # Frequencies: from -fs/2 to +fs/2 shifted by center_frequency
     freqs = np.linspace(-sample_rate / 2, sample_rate / 2, num_freqs) + center_frequency
-    y_ticks = np.linspace(0, num_freqs-1, min(num_freqs, 11))
+    y_ticks = np.linspace(0, num_freqs - 1, min(num_freqs, 11))
     freq_scale, freq_unit = get_frequency_scale(freqs)
     y_labels = [f"{freqs[int(y)] / freq_scale:.2f}" for y in y_ticks]
     ax.set_yticks(y_ticks)
     ax.set_yticklabels(y_labels)
     ax.set_ylabel(f"Frequency {freq_unit}")
 
-    # Asse X = numero di finestre
+    # X-axis represents the number of windows
     window_duration_ms = calculate_window_duration_ms(num_freqs * num_windows, num_windows, sample_rate)
-    x_ticks = np.linspace(0, num_windows-1, min(num_windows, 7))
+    x_ticks = np.linspace(0, num_windows - 1, min(num_windows, 7))
     x_labels = np.round(x_ticks).astype(int)
     time_scale, time_unit = get_window_size_scale(x_labels)
     x_labels = x_labels / time_scale
@@ -121,6 +129,7 @@ def spectrogram(spectrogram_data, sample_rate, center_frequency):
              f'Each window is {window_duration_ms:.2f} ms',
              transform=ax.transAxes, ha='right')
 
+    # Connect callbacks to update labels when the view changes (zoom or pan)
     ax.callbacks.connect('xlim_changed', lambda evt: on_zoom(evt, ax, num_freqs, sample_rate, center_frequency, num_windows, window_duration_ms))
     ax.callbacks.connect('ylim_changed', lambda evt: on_zoom(evt, ax, num_freqs, sample_rate, center_frequency, num_windows, window_duration_ms))
 
