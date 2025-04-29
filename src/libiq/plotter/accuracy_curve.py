@@ -9,24 +9,22 @@ rcParams['legend.fontsize'] = "medium"
 rcParams['axes.grid'] = True
 plt.tight_layout(pad=0.05)
 
-def plot_loss_curve(history: dict, path: str = '', plots_mode: str = ''):
+def plot_accuracy_curve(history: dict, path: str = '', plots_mode: str = ''):
     try:
-        # Check that the history dictionary contains both 'loss' and 'val_loss'
-        if not history or 'loss' not in history or 'val_loss' not in history:
-            raise ValueError("The history dictionary must contain the keys 'loss' and 'val_loss'.")
+        if not history or 'sparse_categorical_accuracy' not in history or 'val_sparse_categorical_accuracy' not in history:
+            raise ValueError("The history dictionary must contain the keys 'sparse_categorical_accuracy' and 'val_sparse_categorical_accuracy'.")
 
-        epochs = range(1, len(history['loss']) + 1)
+        epochs = range(1, len(history['sparse_categorical_accuracy']) + 1)
 
         plt.figure(figsize=(8, 6))
-        # Plot training loss
-        plt.plot(epochs, history['loss'], 'bo-', label='Training Loss')
-        # Plot validation loss
-        plt.plot(epochs, history['val_loss'], 'ro-', label='Validation Loss')
+        # Plot training sparse_categorical_accuracy
+        plt.plot(epochs, history['sparse_categorical_accuracy'], 'bo-', label='Training Accuracy')
+        # Plot val_sparse_categorical_accuracy
+        plt.plot(epochs, history['val_sparse_categorical_accuracy'], 'ro-', label='Validation Accuracy')
         plt.xlabel("Epochs")
-        plt.ylabel("Loss")
+        plt.ylabel("Accuracy")
         plt.legend()
 
-        # If plots_mode is interactive, display the plot; otherwise, save it
         if plots_mode == 'interactive':
             plt.show()
         else:

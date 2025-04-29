@@ -70,6 +70,11 @@ class Classifier:
 
         self.last_prediction = None
 
+        @tf.function
+        def fast_predict(x):
+            return self.model(x, training=False)
+        self.fast_predict = fast_predict
+
     def load_model(self, model_path: str = None):
         if model_path is not None:
             self.model = keras.models.load_model(model_path)
@@ -77,6 +82,8 @@ class Classifier:
             self.model = None
 
     def apply_energy_detector_to_data(self, iq_data) -> np.ndarray:
+        if iq_data.ndim == 1:
+            iq_data = iq_data.reshape(-1, 2)
         complex_data = iq_data[:, 0] + 1j * iq_data[:, 1]
         data_matrix = complex_data.reshape(self.time_window, self.max_window)
         updated_n_samples, cropped_data = energy_detector(
@@ -251,7 +258,10 @@ class Classifier:
         elif x.ndim == 3 and x.shape[0] != 1:
             x = x[0:1, :, :]
 
-        predictions = self.model.predict(x, verbose=0)
+
+        x = tf.convert_to_tensor(x, dtype=tf.float32)
+        predictions = self.fast_predict(x)
+
         if predictions.ndim == 2:
             y_pred_classes = np.argmax(predictions, axis=1)
         else:
