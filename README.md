@@ -29,20 +29,20 @@ LibIQ provides a fully automated installer script that takes care of:
     - Creating a Python virtual environment (.libiq_venv310)
     - Installing required Python packages via pip
 
-# 1. Run the Installer Script
+### 1. Run the Installer Script
 Execute the following script from either outside or inside the libiq directory:
 ```
 ./libiq_installer.sh
 ```
 This script handles all system-level and Python dependency setup automatically.
 
-# 2. Activate the Python Virtual Environment
+### 2. Activate the Python Virtual Environment
 After installation, activate the environment:
 ```
-source .libiq_venv310/bin/activate
+source ./.libiq_venv310/bin/activate
 ```
 
-# 3. Build the LibIQ Python Package
+### 3. Build the LibIQ Python Package
 Once inside the virtual environment, build the project using:
 ```
 hatch env create
@@ -50,9 +50,28 @@ hatch build
 ```
 If hatch is not already installed, install it with:
 ```
-pip install hatch
+pip install build hatch
 ```
-# 4. Install the Package
+
+### 4. Install the Package
 ```
 pip install dist/libiq-0.1.0.tar.gz
 ```
+
+## Manual Installation
+If you prefer manual control:
+
+# 1. Initialize Git Submodules
+```
+git submodule update --init --recursive libs/libsigmf libs/RFDataFactory libs/sdr_channelizer libs/zlib || echo "Problem initializing submodules"
+git submodule update --init libs/matio
+```
+# 2. Build and Install Dependencies
+Manually compile and install all C/C++ libraries in `libs/`. You must install them in standard locations such as `/usr/local/include`.
+
+# 3. Create and activate a Python Virtual Environment
+```
+python3.10 -m venv .libiq_venv310
+source ./.libiq_venv310/bin/activate
+```
+Then continue from step 3 of the automatic installation section (building and installing the Python package).

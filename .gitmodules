@@ -13,3 +13,6 @@
 [submodule "libs/matio"]
 	path = libs/matio
 	url = https://github.com/tbeu/matio.git
+[submodule "libs/hdf5"]
+	path = libs/hdf5
+	url = https://github.com/HDFGroup/hdf5.git
