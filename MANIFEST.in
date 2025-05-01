@@ -5,3 +5,4 @@ include pyproject.toml
 
 recursive-include src/libiq_swig *.h *.i
 recursive-include libs/libsigmf/external/json/include/nlohmann *.hpp
+recursive-include libs/libsigmf/external/flatbuffers/include/flatbuffers *.h

@@ -1,14 +1,17 @@
 # LibIQ Library
 
+##Overview
+LibIQ is a modular and extensible library designed for the manipulation, visualization, and classification of I/Q (In-phase and Quadrature) samples. It provides a Python interface built on a C++ backend using SWIG, enabling high performance for signal analysis tasks while maintaining ease of use in Python environments.
+
 ## Dependencies
-`libiq` is built on a foundation of several libraries:
+`LibIQ` relies on several external libraries for full functionality:
 
-- **libsigmf**: A library that provides standardized format for storing signal metadata in signal capture files.
-- **matio**: A library for reading and writing Matlab MAT files.
-- **SWIG (Simplified Wrapper and Interface Generator)**: A software development tool that connects programs written in C and C++ with a variety of high-level programming languages. In `libiq`, we used SWIG to create bindings between the C++ code and Python, although SWIG supports many other languages.
-- **FFTW (Fastest Fourier Transform in the West)**: FFTW is a C subroutine library for computing the discrete Fourier transform (DFT) in one or more dimensions, of arbitrary input size, and of both real and complex data.
+- **libsigmf**: A header-only C++ library for reading and writing metadata-compliant signal capture files using the Signal Metadata Format (SigMF). Note: it includes dependencies that must be manually built and installed.
+- **matio**: A C library for reading and writing MATLAB .mat files, including support for version 7.3 files (via HDF5).
+- **SWIG (Simplified Wrapper and Interface Generator)**: A tool that generates Python bindings for the C++ backend, allowing Python applications to call native C++ functions.
+- **FFTW (Fastest Fourier Transform in the West)**: A C library for computing the discrete Fourier transform (DFT) efficiently for arbitrary input sizes.
 
-## Building the Project
+## Build and Installation
 Building `libiq` is a straightforward process. Here are the steps you need to follow:
 
 Be sure to build and install all the dependencies, in particular:
@@ -16,28 +19,40 @@ Be sure to build and install all the dependencies, in particular:
     - **libsigmf**: it is an header only library but you need to build its dependencies following the instructions on [libsigmf's Github page](https://github.com/deepsig/libsigmf)
     - **SWIG**: it can be build following the instructions on [SWIG's Github page](https://github.com/swig/swig)
     - **FFTW**: it can be build following the instructions on [FFTW's Home Page](https://www.fftw.org/)
+    - **Python 3.10**: Required to run the Python interface and associated scripts. Installed and isolated using venv.
 
-A script that performs the installation of all the dependencies is given toghether with the library, to execute is you need to run 
+LibIQ provides a fully automated installer script that takes care of:
+    - Cloning the repository (if needed)
+    - Switching to the appropriate Git branch
+    - Initializing all submodules
+    - Building and installing all C/C++ dependencies
+    - Creating a Python virtual environment (.libiq_venv310)
+    - Installing required Python packages via pip
+
+# 1. Run the Installer Script
+Execute the following script from either outside or inside the libiq directory:
 ```
 ./libiq_installer.sh
 ```
-This script will update all submodules, build and install all the necessary libraries, creates a python virtual environment and download all python dependencies inside this virtual environment.
+This script handles all system-level and Python dependency setup automatically.
 
-To activate the virtual environment run:
+# 2. Activate the Python Virtual Environment
+After installation, activate the environment:
 ```
-source .libiqvenv310/bin/activate
+source .libiq_venv310/bin/activate
 ```
 
-Once this is done, to build LibIQ, you need to run:
+# 3. Build the LibIQ Python Package
+Once inside the virtual environment, build the project using:
 ```
 hatch env create
-```
-Once this is done, run:
-```
 hatch build
 ```
-Once this is done, run:
+If hatch is not already installed, install it with:
+```
+pip install hatch
+```
+# 4. Install the Package
 ```
 pip install dist/libiq-0.1.0.tar.gz
 ```
-
