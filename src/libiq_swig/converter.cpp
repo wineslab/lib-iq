@@ -1,31 +1,104 @@
 #include "converter.h"
 
-int Converter::from_bin_to_mat(const std::string& input_file_path, const std::string& output_file_path) {
-    std::filesystem::path input_filepath = input_file_path;
+int Converter::from_csv_or_bin_to_mat(const std::string& input_file_path, const std::string& output_file_path) {
+    std::filesystem::path input_filepath(input_file_path);
 
     std::cout << "Processing file: " << input_filepath << std::endl;
-    std::cout << "from_bin_to_mat" << std::endl;
-    
+
     if (!std::filesystem::exists(input_filepath)) {
-        std::cerr << "Error: File does not exist in: " << input_filepath << std::endl;
+        std::cerr << "Error: File does not exist: " << input_filepath << std::endl;
         return EXIT_FAILURE;
     }
 
-    if (input_filepath.extension() != ".iq" && input_filepath.extension() != ".bin"){
-        std::cerr << "Error: File extension not valid, .iq or .bin is required " << input_filepath << std::endl;
-        return EXIT_FAILURE;
-    }
-    
-    std::ifstream file(input_filepath, std::ios::binary);
-    if (!file) {
-        std::cerr << "Error: File cannot be opened" << std::endl;
+    std::string ext = input_filepath.extension().string();
+    std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+    if (ext != ".iq" && ext != ".bin" && ext != ".csv") {
+        std::cerr << "Error: Unsupported file extension. Only .iq, .bin, and .csv are supported." << std::endl;
         return EXIT_FAILURE;
     }
 
-    std::vector<int16_t> iq_sample;
-    int16_t value;
-    while (file.read(reinterpret_cast<char*>(&value), sizeof(value))) {
-        iq_sample.push_back(value);
+    std::vector<double> real, imag;
+
+    if (ext == ".csv") {
+        std::ifstream csv_file(input_file_path);
+        if (!csv_file.is_open()) {
+            std::cerr << "Error: Cannot open CSV file." << std::endl;
+            return EXIT_FAILURE;
+        }
+
+        std::string line;
+        std::getline(csv_file, line);  // header
+        std::istringstream header_stream(line);
+        std::vector<std::string> headers;
+        std::string col;
+        while (std::getline(header_stream, col, ',')) {
+            col.erase(0, col.find_first_not_of(" \t\r\n"));
+            col.erase(col.find_last_not_of(" \t\r\n") + 1);
+            headers.push_back(col);
+        }
+
+        int real_index = -1, imag_index = -1;
+        for (size_t i = 0; i < headers.size(); ++i) {
+            if (headers[i] == "Real") real_index = static_cast<int>(i);
+            if (headers[i] == "Imaginary") imag_index = static_cast<int>(i);
+        }
+
+        if (real_index == -1 || imag_index == -1) {
+            std::cerr << "Error: Columns 'Real' and 'Imaginary' not found." << std::endl;
+            return EXIT_FAILURE;
+        }
+
+        while (std::getline(csv_file, line)) {
+            if (line.empty()) continue;
+            std::istringstream line_stream(line);
+            std::vector<std::string> tokens;
+            std::string token;
+            while (std::getline(line_stream, token, ',')) {
+                token.erase(0, token.find_first_not_of(" \t\r\n"));
+                token.erase(token.find_last_not_of(" \t\r\n") + 1);
+                tokens.push_back(token);
+            }
+
+            size_t max_index = static_cast<size_t>(std::max(real_index, imag_index));
+            if (tokens.size() <= max_index) continue;
+
+            try {
+                double r = std::stod(tokens[real_index]);
+                double i = std::stod(tokens[imag_index]);
+                real.push_back(r);
+                imag.push_back(i);
+            } catch (...) {
+                continue; // skip line if parsing fails
+            }
+        }
+    } else {
+        // Binary reader for .bin/.iq files assuming int16_t interleaved
+        std::ifstream file(input_file_path, std::ios::binary);
+        if (!file) {
+            std::cerr << "Error: File cannot be opened." << std::endl;
+            return EXIT_FAILURE;
+        }
+
+        std::vector<int16_t> buffer;
+        int16_t value;
+        while (file.read(reinterpret_cast<char*>(&value), sizeof(value))) {
+            buffer.push_back(value);
+        }
+
+        if (buffer.size() % 2 != 0) {
+            std::cerr << "Error: Odd number of samples in binary file." << std::endl;
+            return EXIT_FAILURE;
+        }
+
+        for (size_t i = 0; i < buffer.size(); i += 2) {
+            real.push_back(static_cast<double>(buffer[i]));
+            imag.push_back(static_cast<double>(buffer[i + 1]));
+        }
+    }
+
+    if (real.empty()) {
+        std::cerr << "Error: No IQ samples loaded." << std::endl;
+        return EXIT_FAILURE;
     }
 
     std::filesystem::path output_dir = std::filesystem::path(output_file_path).parent_path();
@@ -34,28 +107,38 @@ int Converter::from_bin_to_mat(const std::string& input_file_path, const std::st
     }
 
     std::shared_ptr<mat_t> matfp(Mat_CreateVer(output_file_path.c_str(), NULL, MAT_FT_MAT73), Mat_Close);
-    if (matfp == nullptr) {
-        std::cerr << "Error: File .mat cannot be opened" << std::endl;
+    if (!matfp) {
+        std::cerr << "Error: Unable to create .mat file." << std::endl;
         return EXIT_FAILURE;
     }
 
-    size_t dims[2] = {1, 1};
-    size_t dimshw[2] = {1, hw.length() + 1};
-    size_t dimsversion[2] = {1, version.length() + 1};
+    size_t dims[2] = {1, real.size()};
 
+    matvar_t* mat_real = Mat_VarCreate("real", MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims, real.data(), 0);
+    matvar_t* mat_imag = Mat_VarCreate("imag", MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims, imag.data(), 0);
 
-    Mat_VarWrite(matfp.get(), Mat_VarCreate("freq_lower_edge", MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims, &freq_lower_edge, 0), MAT_COMPRESSION_NONE);
-    Mat_VarWrite(matfp.get(), Mat_VarCreate("freq_upper_edge", MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims, &freq_upper_edge, 0), MAT_COMPRESSION_NONE);
-    Mat_VarWrite(matfp.get(), Mat_VarCreate("frequency", MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims, &frequency, 0), MAT_COMPRESSION_NONE);
-    Mat_VarWrite(matfp.get(), Mat_VarCreate("sample_rate", MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims, &sample_rate, 0), MAT_COMPRESSION_NONE);
-    
-    Mat_VarWrite(matfp.get(), Mat_VarCreate("global_index", MAT_C_UINT64, MAT_T_UINT64, 2, dims, &global_index, 0), MAT_COMPRESSION_NONE);
-    Mat_VarWrite(matfp.get(), Mat_VarCreate("sample_start", MAT_C_UINT64, MAT_T_UINT64, 2, dims, &sample_start, 0), MAT_COMPRESSION_NONE);
+    if (!mat_real || !mat_imag) {
+        std::cerr << "Error: Failed to create MATLAB variables." << std::endl;
+        return EXIT_FAILURE;
+    }
 
+    size_t scalar_dims[2] = {1, 1};
 
-    Mat_VarWrite(matfp.get(), Mat_VarCreate("hw", MAT_C_CHAR, MAT_T_UTF8, 2, dimshw, hw.c_str(), 0), MAT_COMPRESSION_NONE);
-    Mat_VarWrite(matfp.get(), Mat_VarCreate("version", MAT_C_CHAR, MAT_T_UTF8, 2, dimsversion, version.c_str(), 0), MAT_COMPRESSION_NONE);
+    Mat_VarWrite(matfp.get(), Mat_VarCreate("freq_lower_edge", MAT_C_DOUBLE, MAT_T_DOUBLE, 2, scalar_dims, &this->freq_lower_edge, 0), MAT_COMPRESSION_NONE);
+    Mat_VarWrite(matfp.get(), Mat_VarCreate("freq_upper_edge", MAT_C_DOUBLE, MAT_T_DOUBLE, 2, scalar_dims, &this->freq_upper_edge, 0), MAT_COMPRESSION_NONE);
+    Mat_VarWrite(matfp.get(), Mat_VarCreate("sample_rate", MAT_C_DOUBLE, MAT_T_DOUBLE, 2, scalar_dims, &this->sample_rate, 0), MAT_COMPRESSION_NONE);
+    Mat_VarWrite(matfp.get(), Mat_VarCreate("frequency", MAT_C_DOUBLE, MAT_T_DOUBLE, 2, scalar_dims, &this->frequency, 0), MAT_COMPRESSION_NONE);
 
+    Mat_VarWrite(matfp.get(), Mat_VarCreate("global_index", MAT_C_UINT64, MAT_T_UINT64, 2, scalar_dims, &this->global_index, 0), MAT_COMPRESSION_NONE);
+    Mat_VarWrite(matfp.get(), Mat_VarCreate("sample_start", MAT_C_UINT64, MAT_T_UINT64, 2, scalar_dims, &this->sample_start, 0), MAT_COMPRESSION_NONE);
+
+    size_t hw_dims[2] = {1, this->hw.length() + 1};
+    size_t version_dims[2] = {1, this->version.length() + 1};
+
+    Mat_VarWrite(matfp.get(), Mat_VarCreate("hw", MAT_C_CHAR, MAT_T_UTF8, 2, hw_dims, this->hw.c_str(), 0), MAT_COMPRESSION_NONE);
+    Mat_VarWrite(matfp.get(), Mat_VarCreate("version", MAT_C_CHAR, MAT_T_UTF8, 2, version_dims, this->version.c_str(), 0), MAT_COMPRESSION_NONE);
+
+    std::cout << "Successfully wrote IQ data to: " << output_file_path << std::endl;
     return EXIT_SUCCESS;
 }
 

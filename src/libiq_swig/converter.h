@@ -34,7 +34,7 @@ public:
     *
     * @return 0 if the conversion is successful, -1 if there is an error or if the .mat file cannot be opened.
     */
-    int from_bin_to_mat(const std::string& input_file_path, const std::string& output_file_path);
+    int from_csv_or_bin_to_mat(const std::string& input_file_path, const std::string& output_file_path);
 
     /**
     * @brief Converts a .mat file to a SigMF file.

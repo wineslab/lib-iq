@@ -5,9 +5,21 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import math
 from typing import Literal, Sequence
+import matplotlib.ticker as ticker
 
 IQSample = Sequence[tuple[float, float]]
 DataFormat = Literal["real-imag", "magnitude-phase"]
+
+def get_scale_suffix(value: float) -> tuple[float, str]:
+    """
+    Return scale and suffix for axis labels.
+    """
+    if value == 0:
+        return 1.0, '×10⁰'
+    exponent = int(math.floor(math.log10(abs(value))))
+    scale = 10 ** (exponent // 3 * 3)
+    suffix = f'×10^{int(math.log10(scale))}' if scale != 1 else ''
+    return scale, suffix or '×10⁰'
 
 def process_data(iq_sample: IQSample, data_format: DataFormat) -> tuple[list[float], list[float]]:
     """
@@ -19,7 +31,8 @@ def process_data(iq_sample: IQSample, data_format: DataFormat) -> tuple[list[flo
 
     Returns:
         tuple[list[float], list[float]]: Two lists representing I and Q or phase and magnitude.
-    """    real = [x[0] for x in iq_sample]
+    """
+    real = [x[0] for x in iq_sample]
     imag = [x[1] for x in iq_sample]
     if data_format == 'real-imag':
         return real, imag
@@ -30,133 +43,6 @@ def process_data(iq_sample: IQSample, data_format: DataFormat) -> tuple[list[flo
             magnitude.append(math.sqrt(real[i]**2 + imag[i]**2))
             phase.append(math.atan2(imag[i], real[i]))
         return phase, magnitude
-
-def animated_scatterplot(
-                        iq_sample: IQSample,
-                        data_format: DataFormat,
-                        interval: int = 100,
-                        window: int = 50,
-                        grids: bool = False
-                    ) -> None:
-    """
-    Create an animated scatterplot of I/Q samples in real/imag or magnitude/phase format.
-
-    Args:
-        iq_sample (Sequence[tuple[float, float]]): List of I/Q sample pairs.
-        data_format (Literal["real-imag", "magnitude-phase"]): Format for plotting.
-        interval (int): Interval between animation frames in milliseconds.
-        window (int): Sliding window size for animation.
-        grids (bool): Whether to show gridlines.
-
-    Returns:
-        None
-    """    I_data, Q_data = process_data(iq_sample, data_format)
-
-    if data_format == 'real-imag':
-        iq_sample = np.array(iq_sample)
-        I_data = iq_sample[:, 0]
-        Q_data = iq_sample[:, 1]
-
-    fig, ax = plt.subplots(dpi=300)
-    fig.set_facecolor('black')
-    ax.set_facecolor('black')
-
-    if grids:
-        ax1 = fig.add_subplot()
-        ax1.xaxis.grid(True, color='gray', linestyle='--', linewidth=0.5)
-        ax1.yaxis.grid(True, color='gray', linestyle='--', linewidth=0.5)
-        ax1.set_facecolor('black')
-        ax1.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
-        ax1.tick_params(axis='y', which='both', left=False, right=False, labelleft=False)
-        ax1.set_xticks(np.linspace(-1, 1, 10))
-        ax1.set_yticks(np.linspace(-1, 1, 10))
-
-    sc = ax.scatter([], [], s=1, c='lime')
-
-    if data_format == 'real-imag':
-        ax.set_title('I/Q Scatter Plot (Real-Imag)', color='white', y=1.07)
-        ax.set_xlabel('Q_data (1x10⁵)', color='white', labelpad=1)
-        ax.set_ylabel('I_data (1x10⁵)', color='white', labelpad=1)
-    elif data_format == 'magnitude-phase':
-        ax.set_title('I/Q Scatter Plot (Magnitude-Phase)', color='white', y=1.07)
-        ax.set_xlabel('Phase', color='white', labelpad=1)
-        ax.set_ylabel('Magnitude', color='white', labelpad=1)
-
-    def update(frame):
-        if frame < window:
-            xdata = I_data[:frame]
-            ydata = Q_data[:frame]
-        else:
-            xdata = I_data[frame - window:frame]
-            ydata = Q_data[frame - window:frame]
-
-        if len(xdata) == 0 or len(ydata) == 0:
-            return sc,
-
-        sc.set_offsets(np.c_[xdata, ydata])
-
-        if data_format == 'real-imag':
-            I_min, I_max = xdata.min(), xdata.max()
-            Q_min, Q_max = ydata.min(), ydata.max()
-            I_range = I_max - I_min
-            Q_range = Q_max - Q_min
-
-            if I_range == 0:
-                I_range = 1e-3
-            if Q_range == 0:
-                Q_range = 1e-3
-
-            range_max = max(I_range, Q_range) / 2 * 2.4
-
-            ax.set_xlim(-range_max, range_max)
-            ax.set_ylim(-range_max, range_max)
-
-            I_ticks = np.linspace(-range_max, range_max, 10) * 1e5
-            Q_ticks = np.linspace(-range_max, range_max, 10) * 1e5
-
-            ax.set_xticks(Q_ticks / 1e5)
-            ax.set_xticklabels([f'{tick:.0f}' for tick in Q_ticks], color='white')
-            ax.set_yticks(I_ticks / 1e5)
-            ax.set_yticklabels([f'{tick:.0f}' for tick in I_ticks], color='white')
-
-            ax.tick_params(axis='x', pad=12)
-
-            if grids:
-                ax.grid(True, color='gray', linestyle='--', linewidth=0.5)
-                for tick in Q_ticks / 1e5:
-                    ax.axvline(tick, color='gray', linestyle='--', linewidth=0.5)
-                for tick in I_ticks / 1e5:
-                    ax.axhline(tick, color='gray', linestyle='--', linewidth=0.5)
-
-        elif data_format == 'magnitude-phase':
-            I_max = max(ydata) if max(ydata) > 0 else 1e-5
-
-            Q_min, Q_max = -math.pi, math.pi
-
-            ax.set_ylim(0, I_max)
-            ax.set_xlim(Q_min, Q_max)
-
-            I_ticks = np.linspace(0, I_max, 10)
-            Q_ticks = np.linspace(Q_min, Q_max, 10)
-
-            ax.set_yticks(I_ticks)
-            ax.set_yticklabels([f'{tick:.2f}' for tick in I_ticks], color='white')
-            ax.set_xticks(Q_ticks)
-            ax.set_xticklabels([f'{tick:.2f}' for tick in Q_ticks], color='white')
-
-            if grids:
-                ax.grid(True, color='gray', linestyle='--', linewidth=0.5)
-                for tick in ax.get_xticks():
-                    ax.axvline(tick, color='gray', linestyle='--', linewidth=0.5)
-                for tick in ax.get_yticks():
-                    ax.axhline(tick, color='gray', linestyle='--', linewidth=0.5)
-
-        fig.canvas.draw_idle()
-
-        return sc,
-
-    ani = animation.FuncAnimation(fig, update, frames=len(I_data), interval=interval, blit=True)
-    plt.show()
 
 def scatterplot(iq: IQSample, data_format: DataFormat, grids: bool = False) -> None:
     """
@@ -174,74 +60,46 @@ def scatterplot(iq: IQSample, data_format: DataFormat, grids: bool = False) -> N
 
     fig, ax = plt.subplots(dpi=300)
     fig.set_facecolor('black')
-    ax.scatter(a_data, b_data, s=0.1, c='lime')
     ax.set_facecolor('black')
+    ax.tick_params(axis='both', colors='white', pad=5)
 
     if data_format == 'real-imag':
-        I_data, Q_data = a_data, b_data
+        max_val = max(max(abs(x) for x in a_data), max(abs(y) for y in b_data))
+        scale, suffix = get_scale_suffix(max_val)
 
-        I_min, I_max = min(I_data), max(I_data)
-        Q_min, Q_max = min(Q_data), max(Q_data)
-        I_range = I_max - I_min
-        Q_range = Q_max - Q_min
+        a_scaled = np.array(a_data) / scale
+        b_scaled = np.array(b_data) / scale
 
-        if I_range == 0:
-            I_range = 1e-3
-        if Q_range == 0:
-            Q_range = 1e-3
+        ax.scatter(a_scaled, b_scaled, s=0.1, c='lime')
 
-        range_max = max(I_range, Q_range) / 2 * 2.4
-
-        ax.set_xlim(-range_max, range_max)
-        ax.set_ylim(-range_max, range_max)
-
-        I_ticks = np.linspace(-range_max, range_max, 10) * 1e5
-        Q_ticks = np.linspace(-range_max, range_max, 10) * 1e5
-
-        ax.set_xticks(Q_ticks / 1e5)
-        ax.set_xticklabels([f'{tick:.0f}' for tick in Q_ticks], color='white')
-        ax.set_yticks(I_ticks / 1e5)
-        ax.set_yticklabels([f'{tick:.0f}' for tick in I_ticks], color='white')
-
-        ax.tick_params(axis='x', pad=12)
+        ax.set_xlim(a_scaled.min()*1.1 - 2, a_scaled.max()*1.1 + 2)
+        ax.set_ylim(b_scaled.min()*1.1 - 2, b_scaled.max()*1.1 + 2)
 
         if grids:
             ax.grid(True, color='gray', linestyle='--', linewidth=0.5)
-            for tick in Q_ticks / 1e5:
-                ax.axvline(tick, color='gray', linestyle='--', linewidth=0.5)
-            for tick in I_ticks / 1e5:
-                ax.axhline(tick, color='gray', linestyle='--', linewidth=0.5)
 
         ax.set_title('I/Q Scatter Plot (Real-Imag)', color='white', y=1.07)
-        ax.set_xlabel('Q_data (1x10⁵)', color='white', labelpad=1)
-        ax.set_ylabel('I_data (1x10⁵)', color='white', labelpad=1)
+        ax.set_xlabel(f'Q_data ({suffix})', color='white')
+        ax.set_ylabel(f'I_data ({suffix})', color='white')
 
     elif data_format == 'magnitude-phase':
-        magnitude_max = max(b_data) if max(b_data) > 0 else 1e-5
-        phase_min, phase_max = -math.pi, math.pi
+        max_val = max(abs(m) for m in b_data)
+        scale, suffix = get_scale_suffix(max_val)
+        b_scaled = np.array(b_data) / scale
+        a_array = np.array(a_data)
 
-        ax.set_ylim(0, magnitude_max)
-        ax.set_xlim(phase_min, phase_max)
+        ax.scatter(a_array, b_scaled, s=0.1, c='lime')
 
-        I_ticks = np.linspace(0, magnitude_max, 10)
-        Q_ticks = np.linspace(phase_min, phase_max, 10)
+        ax.set_xlim(-math.pi, math.pi)
+        ax.set_ylim(0, b_scaled.max() * 1.1)
 
-        ax.set_yticks(I_ticks)
-        ax.set_yticklabels([f'{tick:.2f}' for tick in I_ticks], color='white')
-        ax.set_xticks(Q_ticks)
-        ax.set_xticklabels([f'{tick:.2f}' for tick in Q_ticks], color='white')
+        ax.set_xlabel('Phase (rad)', color='white')
+        ax.set_ylabel(f'Magnitude ({suffix})', color='white')
 
         if grids:
             ax.grid(True, color='gray', linestyle='--', linewidth=0.5)
-            for tick in ax.get_xticks():
-                ax.axvline(tick, color='gray', linestyle='--', linewidth=0.5)
-            for tick in ax.get_yticks():
-                ax.axhline(tick, color='gray', linestyle='--', linewidth=0.5)
 
         ax.set_title('I/Q Scatter Plot (Magnitude-Phase)', color='white', y=1.07)
-        ax.set_xlabel('Phase', color='white', labelpad=1)
-        ax.set_ylabel('Magnitude', color='white', labelpad=1)
 
-    ax.tick_params(colors='white', which='both')
-
+    plt.tight_layout()
     plt.show()

@@ -14,6 +14,7 @@
 %include "std_array.i"
 %include "std_complex.i"
 
+%template(StringVector) std::vector<std::string>;
 %template(DoubleVector) std::vector<double>;
 %template(VectorOfDoubleVector) std::vector<std::vector<double>>;
 %template(DoubleArray) std::array<double, 2>;
