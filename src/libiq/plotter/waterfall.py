@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from typing import Union
 
 def plot_waterfall(data_input: Union[str, np.ndarray],
-                   plots_mode: str = "interactive",
+                   interactive_plots: str = "interactive",
                    fft_size: int = 1536,
                    path: str = '') -> None:
     """
@@ -21,7 +21,7 @@ def plot_waterfall(data_input: Union[str, np.ndarray],
             - A NumPy array containing the FFT data directly. If the array is 1D, its 
               length must be a multiple of fft_size (the FFT window width). If it is 2D, it 
               must have fft_size columns.
-        plots_mode: If set to '' or 'interactive', the plot is displayed interactively.
+        interactive_plots: If set to '' or 'interactive', the plot is displayed interactively.
                     Otherwise, it is assumed that this parameter is the file path
                     where the plot will be saved.
         signed_data: If True, the binary file is read as int16; if False, as uint16.
@@ -36,26 +36,22 @@ def plot_waterfall(data_input: Union[str, np.ndarray],
         - When reading from CSV, only the "Real" and "Imaginary" columns are used to 
           reconstruct the complex samples. The rest of the columns are ignored.
     """
-    plt.close('all')  # close all open figures
+    plt.close('all')
 
-    # Case 1: data_input is a string (either a binary file or a CSV file).
     if isinstance(data_input, str):
         if not os.path.exists(data_input):
             raise FileNotFoundError(f"File not found: {data_input}")
 
-        # If the file ends with '.csv', we read from CSV.
         if data_input.lower().endswith('.csv'):
             df = pd.read_csv(data_input)
             if 'Real' not in df.columns or 'Imaginary' not in df.columns:
                 raise ValueError(
                     "CSV file must contain at least 'Real' and 'Imaginary' columns."
                 )
-            # Reconstruct the complex data from Real and Imag columns.
             real_data = df['Real'].to_numpy(dtype=np.float32)
             imag_data = df['Imaginary'].to_numpy(dtype=np.float32)
             fft_data = real_data + 1j * imag_data
         else:
-            # Otherwise, assume it's a binary file with 16-bit data.
             dtype_to_use = np.int16 if signed_data else np.uint16
             raw_data = np.fromfile(data_input, dtype=dtype_to_use)
 
@@ -67,18 +63,14 @@ def plot_waterfall(data_input: Union[str, np.ndarray],
                     "Each FFT window must have fft_size complex samples (fft_size 16-bit values)."
                 )
 
-            # Convert the interleaved data into complex numbers.
             complex_pairs = raw_data.reshape(-1, 2)
             fft_data = complex_pairs[:, 0].astype(np.float32) + 1j * complex_pairs[:, 1].astype(np.float32)
 
-    # Case 2: data_input is already a NumPy array.
     elif isinstance(data_input, np.ndarray):
         fft_data = data_input
     else:
         raise TypeError("data_input must be a string (file path) or a NumPy array.")
     
-    # Reshape the FFT data into (num_windows, fft_size).
-    # If it's 1D, each row will be fft_size complex samples; if 2D, it must have fft_size columns.
     if fft_data.ndim == 1:
         if fft_data.size % fft_size != 0:
             raise ValueError("FFT data length is not a multiple of fft_size.")
@@ -90,23 +82,20 @@ def plot_waterfall(data_input: Union[str, np.ndarray],
     else:
         raise ValueError("FFT data must be a 1D or 2D array.")
     
-    # Flip the waterfall data horizontally to move features from left to right.
     waterfall = np.flip(waterfall, axis=1)
     
-    # Compute the magnitude in dB.
     magnitude = np.abs(waterfall)
     with np.errstate(divide='ignore'):
         magnitude_dB = 20 * np.log10(magnitude)
     magnitude_dB[np.isneginf(magnitude_dB)] = 0
     
-    # Create the waterfall plot.
     plt.figure(figsize=(10, 8))
     im = plt.imshow(
         magnitude_dB,
         aspect='auto',
         interpolation='nearest',
         origin='upper',
-        extent=[0, fft_size, waterfall.shape[0], 0],  # x from 0 to fft_size, y from top to bottom
+        extent=[0, fft_size, waterfall.shape[0], 0],
         cmap='viridis',
         vmin=0,
         vmax=60
@@ -115,12 +104,11 @@ def plot_waterfall(data_input: Union[str, np.ndarray],
     plt.xlabel('FFT Bin')
     plt.ylabel('Time Window')
     
-    # Display interactively or save to file.
-    if plots_mode == "interactive":
+    if interactive_plots == True:
         plt.show()
     else:
         if path != '':
             plt.savefig(path, format='pdf', dpi=1000)
             plt.close()
         else:
-            raise ValueError("Il path per salvare il plot è vuoto. Fornisci un path valido o imposta PLOTS_MODE a 'interactive'.")
+            raise ValueError("Il path per salvare il plot è vuoto. Fornisci un path valido o imposta INTERACTIVE_PLOTS a 'interactive'.")

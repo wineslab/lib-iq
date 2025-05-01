@@ -73,10 +73,9 @@ def preprocess_data(csv_file_path: str,
     df = normalize(df)
     
     if report and report_path:
-        report_file = os.path.join(report_path, "report.html")
         pr = ProfileReport(df, title="Profiling Report", explorative=True)
-        pr.to_file(report_file)
-        print(f"Profiling report saved to: {report_file}")
+        pr.to_file(report_path)
+        print(f"Profiling report saved to: {report_path}")
     
     grouped = df.groupby('File', sort=False)
     

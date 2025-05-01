@@ -28,15 +28,11 @@ from libiq.utils.constants import (
     PLOT_LABELS, 
     STATIC_LABELS,
     RANDOM_STATE,
-    N_EPOCHS
 )
 
 os.environ['PYTHONHASHSEED'] = str(RANDOM_STATE)
 os.environ['TF_DETERMINISTIC_OPS'] = '1'
 os.environ['TF_CUDNN_DETERMINISTIC'] = '1'
-# To force CPU-only execution, uncomment the line below
-# os.environ['CUDA_VISIBLE_DEVICES'] = ''
-
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 import tensorflow as tf
@@ -48,12 +44,35 @@ tf.random.set_seed(RANDOM_STATE)
 
 
 class Classifier:
-    def __init__(self, time_window: int = 1, input_vector: int = 1536, moving_avg_window: int = 30, extraction_window: int = 600, model_path: str = None):
+    def __init__(self, 
+                time_window: int = 1, 
+                input_vector: int = 1536, 
+                moving_avg_window: int = 30, 
+                extraction_window: int = 600, 
+                epochs: int = 10, 
+                batch_size: int = 32, 
+                model_path: str | None = None,
+                plots: bool = False,
+                interactive_plots: bool = False) -> None:
+        """
+        Initialize the Classifier instance with parameters and optionally load a trained model.
+
+        Args:
+            time_window (int): Number of time windows to buffer for prediction.
+            input_vector (int): Length of each input vector.
+            moving_avg_window (int): Window size for the moving average used in energy detection.
+            extraction_window (int): Number of samples to extract after energy detection.
+            model_path (str, optional): Path to a pre-trained Keras model. If None, model is not loaded.
+        """
         self.time_window = time_window
         self.input_vector = input_vector
         self.moving_avg_window = moving_avg_window
         self.extraction_window = extraction_window
         self.max_window = 1536
+        self.epochs = epochs
+        self.batch_size = batch_size
+        self.plots = plots
+        self.interactive_plots = interactive_plots
 
         if input_vector != extraction_window:
             self.input_vector = extraction_window
@@ -75,13 +94,28 @@ class Classifier:
             return self.model(x, training=False)
         self.fast_predict = fast_predict
 
-    def load_model(self, model_path: str = None):
+    def load_model(self, model_path: str | None = None) -> None:
+        """
+        Load a trained Keras model from a given path.
+
+        Args:
+            model_path (str, optional): File path to the saved Keras model. If None, does not load anything.
+        """
         if model_path is not None:
             self.model = keras.models.load_model(model_path)
         else:
             self.model = None
 
-    def apply_energy_detector_to_data(self, iq_data) -> np.ndarray:
+    def apply_energy_detector_to_data(self, iq_data: np.ndarray) -> np.ndarray:
+        """
+        Apply energy detection to reshape and reduce the input I/Q data.
+
+        Args:
+            iq_data (np.ndarray): Raw complex I/Q samples.
+
+        Returns:
+            np.ndarray: Cropped and filtered I/Q samples ready for preprocessing.
+        """
         if iq_data.ndim == 1:
             iq_data = iq_data.reshape(-1, 2)
         complex_data = iq_data[:, 0] + 1j * iq_data[:, 1]
@@ -93,7 +127,22 @@ class Classifier:
         )
         return cropped_data
 
-    def predict(self, iq_data):
+    def predict(self, iq_data: np.ndarray) -> int:
+        """
+        Run prediction on the given I/Q data.
+
+        This function buffers the input if necessary, applies energy detection and preprocessing,
+        and uses the loaded CNN model to return the predicted class label.
+
+        Args:
+            iq_data (np.ndarray): Raw I/Q samples to classify.
+
+        Returns:
+            int: Predicted class label from STATIC_LABELS, or the last prediction if buffer is not full yet.
+
+        Raises:
+            ValueError: If model is not loaded or input shape is incorrect.
+        """
         if self.buffer is not None:
             iq_data_arr = np.array(iq_data).reshape(-1, 2)
             self.buffer = np.concatenate((self.buffer, iq_data_arr), axis=0)
@@ -122,6 +171,20 @@ class Classifier:
             return result
 
     def cnn_metrics(self, y_true: List[int], y_pred: List[int], path: str = '') -> Tuple[float, float, float, float]:
+        """
+        Compute and display CNN classification metrics and plot confusion matrix.
+
+        Args:
+            y_true (List[int]): Ground-truth labels.
+            y_pred (List[int]): Predicted labels from the model.
+            path (str): Path to save the confusion matrix plot.
+
+        Returns:
+            Tuple[float, float, float, float]: Accuracy, Precision, Recall, and F1-score.
+
+        Raises:
+            ValueError: If input label lists are not the same length.
+        """
         try:
             if len(y_true) != len(y_pred):
                 raise ValueError("The lists y_true and y_pred must have the same length.")
@@ -138,7 +201,8 @@ class Classifier:
             print("\tRecall:", recall)
             print("\tF1 Score:", f1)
 
-            plot_confusion_matrix(cm, PLOT_LABELS, path)
+            if self.plots:
+                plot_confusion_matrix(cm, PLOT_LABELS, path, self.interactive_plots)
 
             return acc, precision, recall, f1
         except ValueError as e:
@@ -146,6 +210,18 @@ class Classifier:
             raise e
 
     def modify_file_path(self, file: str) -> str:
+        """
+        Modify a file path by appending '_labeled' before the file extension.
+
+        Args:
+            file (str): Original file path.
+
+        Returns:
+            str: Modified file path.
+
+        Raises:
+            ValueError: If the file path does not exist or is invalid.
+        """
         try:
             file_path = Path(file)
             if not file_path.exists():
@@ -156,6 +232,19 @@ class Classifier:
             raise e
 
     def make_model(self, num_classes: int, input_shape: tuple) -> keras.models.Model:
+        """
+        Build a simple 1D CNN model architecture.
+
+        Args:
+            num_classes (int): Number of output classes.
+            input_shape (tuple): Input shape for the model (time_steps, features).
+
+        Returns:
+            keras.models.Model: Compiled Keras model.
+
+        Raises:
+            ValueError: If input shape is empty or invalid.
+        """
         try:
             if len(input_shape) == 0:
                 raise ValueError("input_shape must be a non-empty tuple.")
@@ -182,14 +271,27 @@ class Classifier:
         except (TypeError, ValueError) as e:
             raise e
 
-    def cnn_train(self, x_train: np.ndarray, y_train: np.ndarray, epochs: int = N_EPOCHS, batch_size: int = 32) -> None:
+    def cnn_train(self, x_train: np.ndarray, y_train: np.ndarray) -> None:
+        """
+        Train the CNN model on the given training data.
+
+        Saves the best model, plots the training loss curve, and evaluates metrics.
+
+        Args:
+            x_train (np.ndarray): Input feature matrix for training.
+            y_train (np.ndarray): Corresponding labels.
+
+        Raises:
+            ValueError: If training data is empty.
+        """
         print("\nStarting CNN model training...")
         try:
             if x_train is None or len(x_train) == 0:
                 raise ValueError("The input time series is empty or None.")
 
             model = self.make_model(7, input_shape=(self.time_window * self.input_vector, 4))
-            keras.utils.plot_model(model, show_shapes=True, to_file=f'{CNN_MODEL_PATH}model.pdf')
+            if self.plots == True and self.interactive_plots == False:
+                keras.utils.plot_model(model, show_shapes=True, to_file=f'{CNN_MODEL_PATH}model.pdf')
 
             callbacks = [
                 keras.callbacks.ModelCheckpoint(
@@ -210,14 +312,15 @@ class Classifier:
             history = model.fit(
                 x_train,
                 y_train,
-                batch_size=batch_size,
-                epochs=epochs,
+                batch_size=self.batch_size,
+                epochs=self.epochs,
                 callbacks=callbacks,
                 validation_split=0.2,
                 verbose=1,
             )
 
-            plot_loss_curve(history.history, path=f'{PLOTS_PATH}loss_curve_train.pdf')
+            if self.plots == True:
+                plot_loss_curve(history.history, path=f'{PLOTS_PATH}loss_curve_train.pdf', interactive_plots=self.interactive_plots)
 
             y_train_pred = np.argmax(model.predict(x_train), axis=1)
             self.cnn_metrics(y_train, y_train_pred, f'{PLOTS_PATH}confusion_matrix_train.pdf')
@@ -226,6 +329,16 @@ class Classifier:
             raise e
 
     def cnn_test(self, x_test: np.ndarray, y_test: np.ndarray) -> None:
+        """
+        Evaluate the CNN model on test data and plot the confusion matrix.
+
+        Args:
+            x_test (np.ndarray): Input feature matrix for testing.
+            y_test (np.ndarray): Ground-truth labels for test data.
+
+        Raises:
+            ValueError: If model is not loaded or test data is invalid.
+        """
         try:
             if self.model is None:
                 raise ValueError("The model was not loaded correctly.")
@@ -241,6 +354,18 @@ class Classifier:
             raise e
 
     def cnn_test_dapp(self, x: np.ndarray) -> int:
+        """
+        Run CNN prediction on preprocessed input data.
+
+        Args:
+            x (np.ndarray): Preprocessed input tensor of shape (1, time_steps, 4).
+
+        Returns:
+            int: Most frequent predicted class label.
+
+        Raises:
+            ValueError: If model is not loaded or input format is incorrect.
+        """
         if self.model is None:
             raise ValueError("The model was not loaded correctly.")
 
@@ -271,7 +396,16 @@ class Classifier:
         final_label = Counter(y_pred_classes).most_common(1)[0][0]
         return STATIC_LABELS[final_label]
 
-    def preprocessing(self, iq_data):
+    def preprocessing(self, iq_data: np.ndarray) -> np.ndarray:
+        """
+        Convert raw I/Q samples into a 4-channel input: real, imag, magnitude in dB, and phase.
+
+        Args:
+            iq_data (np.ndarray): Raw complex I/Q data.
+
+        Returns:
+            np.ndarray: Preprocessed data of shape (samples, 4).
+        """
         iq_array = np.array(iq_data).reshape(-1)
         real_vals = np.real(iq_array)
         imag_vals = np.imag(iq_array)

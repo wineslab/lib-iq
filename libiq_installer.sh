@@ -1,11 +1,10 @@
 #!/bin/bash
 clear
 BASE_PATH="$(pwd)"
-# Variabili principali
+
 BASE_DIR="$BASE_PATH/libiq"
 LIBS_DIR="$BASE_DIR/libs"
 
-# Variabili per librerie
 ZLIB_DIR="$LIBS_DIR/zlib"
 HDF5_ARCHIVE="$LIBS_DIR/hdf5-1_14_3.tar.gz"
 HDF5_DIR="$LIBS_DIR/hdf5-hdf5-1_14_3"
@@ -14,7 +13,6 @@ FFTW_DIR="$LIBS_DIR/fftw-3.3.10"
 MATIO_DIR="$LIBS_DIR/matio"
 LIBSIGMF_DIR="$LIBS_DIR/libsigmf"
 
-# Percorsi di installazione
 ZLIB_INCLUDE="/usr/local/include/zlib.h"
 HDF5_INCLUDE="/usr/local/include/hdf5"
 FFTW_INCLUDE="/usr/local/include/fftw3.h"
@@ -22,7 +20,6 @@ MATIO_INCLUDE="/usr/local/include/matio.h"
 MATIO_PUBCONF_INCLUDE="/usr/local/include/matio_pubconf.h"
 SIGMF_INCLUDE="/usr/local/include/sigmf"
 
-# Percorsi binari
 SWIG_BIN="swig"
 CMAKE_BIN="cmake"
 GPP_BIN="g++"
@@ -32,10 +29,8 @@ VENV_DIR=".libiq_venv310"
 PYTHON_VERSION="3.10"
 PYTHON_BIN="python3.10"
 
-# Numero di core per compilazione
 NPROC=$(nproc)
 
-# Funzione per controllare se un comando è disponibile
 check_command() {
     if command -v "$1" &> /dev/null; then
         if [[ "$1" == "libtool" ]]; then
@@ -50,7 +45,6 @@ check_command() {
     fi
 }
 
-# Funzione per controllare se un pacchetto Python è installato
 check_python_package() {
     if "$PYTHON_BIN" -m pip show "$1" &> /dev/null; then
         echo "Il pacchetto '$1' è già installato."
@@ -60,7 +54,6 @@ check_python_package() {
     fi
 }
 
-# Funzione per controllare e installare pacchetti di sistema
 install_package() {
     if dpkg -l | grep -qw "$1"; then
         echo "$1 è già installato."
@@ -76,17 +69,14 @@ else
     echo "Clonazione del repository libiq..."
     git clone --branch libiq_clean https://github.com/wineslab/libiq.git "$BASE_DIR" || { echo "Errore durante il clonaggio di libiq."; exit 1; }
 
-    # Entrare nella directory principale
     echo "Entering $BASE_DIR/"
     cd "$BASE_DIR" || { echo "Directory $BASE_DIR non trovata!"; exit 1; }
 
-    # Aggiornare i submodules
     echo "Updating submodules di libiq in $BASE_DIR"
     git submodule update --init --recursive libs/libsigmf libs/RFDataFactory libs/sdr_channelizer libs/zlib || echo "Problema nell'inizializzazione dei submodules"
     git submodule update --init libs/matio
 fi
 
-# Controllo e installazione di Python 3.10
 if command -v "$PYTHON_BIN" &> /dev/null; then
     echo "Python $PYTHON_VERSION è già installato ($(python3.10 --version))."
 else
@@ -102,10 +92,8 @@ fi
 
 install_package "graphviz"
 
-# Navigare nella directory principale
 cd "$BASE_DIR" || { echo "Directory $BASE_DIR non trovata!"; exit 1; }
 
-# Creazione dell'ambiente virtuale solo se non esiste
 if [ -d "$VENV_DIR" ]; then
     echo "L'ambiente virtuale $VENV_DIR esiste già. Lo attivo."
 else
@@ -113,30 +101,20 @@ else
     "$PYTHON_BIN" -m venv "$VENV_DIR" || { echo "Errore durante la creazione dell'ambiente virtuale."; exit 1; }
 fi
 
-# Attivare l'ambiente virtuale
 echo "Attivazione dell'ambiente virtuale $VENV_DIR..."
 source "$VENV_DIR/bin/activate" || { echo "Errore durante l'attivazione dell'ambiente virtuale."; exit 1; }
 
-# Aggiornamento di pip e installazione dei requirements
 echo "Aggiornamento di pip..."
 pip install --upgrade pip || { echo "Errore durante l'aggiornamento di pip."; exit 1; }
 
-#./apply_setup.sh
-
-#echo "libiq installed successfully!"
-
 check_python_package "matplotlib"
 
-# Controllo per SWIG
 check_command "$SWIG_BIN" "swig -version | grep 'SWIG Version' | awk '{print $3}'" "swig"
 
-# Controllo per CMake
 check_command "$CMAKE_BIN" "cmake --version | head -n 1 | awk '{print $3}'" "cmake"
 
-# Controllo per g++
 check_command "$GPP_BIN" "g++ --version | head -n 1 | awk '{print $4}'" "g++"
 
-# Controllo per libtool e libtool-bin
 if command -v "$LIBTOOL_BIN" &> /dev/null; then
     version=$("$LIBTOOL_BIN" --version | head -n 1 | awk '{print $4}')
     echo "$LIBTOOL_BIN è già installato ($version). Salto l'installazione."
@@ -145,7 +123,6 @@ else
     sudo apt install -y libtool libtool-bin || { echo "Errore durante l'installazione di libtool."; exit 1; }
 fi
 
-# Controllo se zlib è già installato
 if [ -f "$ZLIB_INCLUDE" ]; then
     echo "zlib è già presente in /usr/local/include/. Salto la compilazione e installazione."
 else
@@ -162,7 +139,6 @@ else
     echo "Installation of zlib completed successfully!"
 fi
 
-# Controllo se HDF5 è già installato
 if [ -d "$HDF5_INCLUDE" ]; then
     echo "HDF5 è già installato in /usr/local/include/. Salto la configurazione, compilazione e installazione."
 else
@@ -191,7 +167,6 @@ else
     echo "HDF5 installed successfully"
 fi
 
-# Controllo se matio è già installato
 if [ -f "$MATIO_INCLUDE" ] || [ -f "$MATIO_PUBCONF_INCLUDE" ]; then
     echo "matio è già installato in /usr/local/include/. Salto la configurazione, compilazione e installazione."
 else
@@ -213,7 +188,6 @@ else
     echo "matio installed successfully!"
 fi
 
-# Controllo se libsigmf è già installato
 if [ -d "$SIGMF_INCLUDE" ]; then
     echo "libsigmf è già installato in /usr/local/include/. Salto la compilazione e installazione."
 else
@@ -241,7 +215,6 @@ else
     echo "libsigmf installed successfully!"
 fi
 
-# Controllo se FFTW è già installato
 if [ -f "$FFTW_INCLUDE" ]; then
     echo "FFTW è già installato in /usr/local/include/. Salto la configurazione, compilazione e installazione."
 else
@@ -275,7 +248,6 @@ else
     echo "FFTW installed successfully!"
 fi
 
-# Controllo se GNURadio è già installato
 if command -v gnuradio-config-info &> /dev/null; then
     version=$(gnuradio-config-info --version)
     echo "GNURadio è già installato (Versione: $version). Salto l'installazione."

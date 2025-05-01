@@ -115,7 +115,6 @@ def read_binary_data(file_path: str, dtype: np.dtype, max_rows: int = None) -> n
     try:
         count = None
         if max_rows is not None:
-            # Each FFT row has 1536 complex numbers = 1536*2 values
             count = max_rows * 1536 * 2
         data = np.fromfile(file_path, dtype=dtype, count=count)
         if data.size % 2 != 0:
@@ -212,7 +211,6 @@ def process_binary_file(file_path: str,
           - A list of CSV file paths that were created.
           - The number of samples (updated_n_samples) expected in each file.
     """
-    # Read only the first 'input_vector' FFT rows from the binary file
     data = read_binary_data(file_path, dtype, max_rows=input_vector)
     
     total_rows = len(data) // 1536
@@ -221,12 +219,10 @@ def process_binary_file(file_path: str,
     
     data_matrix = data[:total_rows * 1536].reshape(total_rows, 1536)
     
-    # Apply the energy detector for horizontal cropping and unpack the results.
     updated_n_samples, cropped_data = energy_detector(data_matrix, extraction_window, moving_avg_window)    
-    # Convert the flattened data into a DataFrame.
+
     df = process_samples_vectorized(cropped_data, ground_truth)
     
-    # Split the DataFrame into chunks and save each chunk as a CSV file.
     df_chunks = split_dataframe(df, updated_n_samples, num_files)
     saved_files_info = save_dataframes_to_csv(df_chunks, file_path, output_path)
     

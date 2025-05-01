@@ -3,14 +3,35 @@ matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import numpy as np
 import time
+from typing import Callable, Sequence
 
-def calculate_window_duration_ms(num_samples, num_windows, sample_rate):
+def calculate_window_duration_ms(num_samples: int, num_windows: int, sample_rate: float) -> float:
+    """
+    Calculate the duration of each time window in milliseconds.
+
+    Args:
+        num_samples (int): Total number of samples.
+        num_windows (int): Number of windows.
+        sample_rate (float): Sampling rate in Hz.
+
+    Returns:
+        float: Window duration in milliseconds.
+    """
     total_duration_s = num_samples / sample_rate
     window_duration_s = total_duration_s / num_windows
     window_duration_ms = window_duration_s * 1000
     return window_duration_ms
 
-def get_frequency_scale(freqs):
+def get_frequency_scale(freqs: Sequence[float]) -> tuple[float, str]:
+    """
+    Determine the appropriate frequency scale and unit based on the frequency values.
+
+    Args:
+        freqs (Sequence[float]): List or array of frequencies.
+
+    Returns:
+        tuple[float, str]: A scaling factor and its unit as a string.
+    """
     freq = freqs[0]
     if freq >= 1e9:
         return 1e9, "(GHz)"
@@ -21,7 +42,16 @@ def get_frequency_scale(freqs):
     else:
         return 1, "(Hz)"
 
-def get_window_size_scale(times):
+def get_window_size_scale(times: Sequence[float]) -> tuple[float, str]:
+    """
+    Determine the appropriate scale and unit for time windows.
+
+    Args:
+        times (Sequence[float]): Sequence of time values or window indices.
+
+    Returns:
+        tuple[float, str]: A scaling factor and its unit as a string.
+    """
     t = times[-1] if len(times) > 0 else 0
     if t >= 1e9:
         return 1e9, "(10⁹)"
@@ -32,14 +62,22 @@ def get_window_size_scale(times):
     else:
         return 1, ""
 
-def update_y_labels(ax, num_freqs, sample_rate, center_frequency):
-    # Get the current y-axis limits
+def update_y_labels(ax: plt.Axes, num_freqs: int, sample_rate: float, center_frequency: float) -> None:
+    """
+    Update Y-axis labels of a spectrogram to display frequency values.
+
+    Args:
+        ax (plt.Axes): The matplotlib Axes object.
+        num_freqs (int): Number of frequency bins.
+        sample_rate (float): Sampling rate in Hz.
+        center_frequency (float): Center frequency in Hz.
+
+    Returns:
+        None
+    """
     y_lims = ax.get_ylim()
-    # Create a frequency array from -fs/2 to +fs/2, then shift by center_frequency
     freqs = np.linspace(-sample_rate / 2, sample_rate / 2, num_freqs) + center_frequency
-    # Clip the y-axis limits to valid indices
     y_lims = np.clip(y_lims, 0, num_freqs - 1)
-    # Determine the visible frequencies based on the current y-axis limits
     visible_freqs = freqs[int(y_lims[0]):int(y_lims[1])]
     if len(visible_freqs) == 0:
         return
@@ -56,10 +94,19 @@ def update_y_labels(ax, num_freqs, sample_rate, center_frequency):
     ax.set_ylabel(f"Frequency {freq_unit}")
     plt.draw()
 
-def update_x_labels(ax, num_windows, window_duration_ms):
-    # Get the current x-axis limits
+def update_x_labels(ax: plt.Axes, num_windows: int, window_duration_ms: float) -> None:
+    """
+    Update X-axis labels of a spectrogram to display time window numbers.
+
+    Args:
+        ax (plt.Axes): The matplotlib Axes object.
+        num_windows (int): Number of windows.
+        window_duration_ms (float): Duration of each window in milliseconds.
+
+    Returns:
+        None
+    """
     x_lims = ax.get_xlim()
-    # Clip the x-axis limits to valid window indices
     x_lims = np.clip(x_lims, 0, num_windows - 1)
     num_ticks = 7
     if (x_lims[1] - x_lims[0]) > 0:
@@ -77,17 +124,37 @@ def update_x_labels(ax, num_windows, window_duration_ms):
     ax.set_xlabel(f"Window number {time_unit}")
     plt.draw()
 
-def on_zoom(event, ax, num_freqs, sample_rate, center_frequency, num_windows, window_duration_ms):
-    # Update both y and x labels when zooming or panning
+def on_zoom(event, ax: plt.Axes, num_freqs: int, sample_rate: float, center_frequency: float, num_windows: int, window_duration_ms: float) -> None:
+    """
+    Callback for zooming on the spectrogram. Updates axis labels accordingly.
+
+    Args:
+        event: Matplotlib zoom event (unused).
+        ax (plt.Axes): The matplotlib Axes object.
+        num_freqs (int): Number of frequency bins.
+        sample_rate (float): Sampling rate in Hz.
+        center_frequency (float): Center frequency in Hz.
+        num_windows (int): Number of time windows.
+        window_duration_ms (float): Duration of each window in ms.
+
+    Returns:
+        None
+    """
     update_y_labels(ax, num_freqs, sample_rate, center_frequency)
     update_x_labels(ax, num_windows, window_duration_ms)
 
-def spectrogram(spectrogram_data, sample_rate, center_frequency):
+def spectrogram(spectrogram_data: Sequence[Sequence[float]], sample_rate: float, center_frequency: float) -> None:
     """
-    Displays the spectrogram (2D dB matrix) with the X-axis representing windows (time)
-    and the Y-axis representing frequency, centered on center_frequency.
+    Display a spectrogram image with proper axis labeling for time and frequency.
+
+    Args:
+        spectrogram_data (Sequence[Sequence[float]]): 2D array or list of dB values [freq x time].
+        sample_rate (float): Sampling rate in Hz.
+        center_frequency (float): Center frequency in Hz.
+
+    Returns:
+        None
     """
-    # Transpose the spectrogram data so that its shape is [frequencies, time]
     spectrogram_data = np.array(spectrogram_data).T
     print(f"There are {spectrogram_data.shape[1]} windows of size {spectrogram_data.shape[0]}")
 
@@ -101,7 +168,6 @@ def spectrogram(spectrogram_data, sample_rate, center_frequency):
     num_windows = spectrogram_data.shape[1]
     num_freqs = spectrogram_data.shape[0]
 
-    # Frequencies: from -fs/2 to +fs/2 shifted by center_frequency
     freqs = np.linspace(-sample_rate / 2, sample_rate / 2, num_freqs) + center_frequency
     y_ticks = np.linspace(0, num_freqs - 1, min(num_freqs, 11))
     freq_scale, freq_unit = get_frequency_scale(freqs)
@@ -110,7 +176,6 @@ def spectrogram(spectrogram_data, sample_rate, center_frequency):
     ax.set_yticklabels(y_labels)
     ax.set_ylabel(f"Frequency {freq_unit}")
 
-    # X-axis represents the number of windows
     window_duration_ms = calculate_window_duration_ms(num_freqs * num_windows, num_windows, sample_rate)
     x_ticks = np.linspace(0, num_windows - 1, min(num_windows, 7))
     x_labels = np.round(x_ticks).astype(int)
@@ -129,7 +194,6 @@ def spectrogram(spectrogram_data, sample_rate, center_frequency):
              f'Each window is {window_duration_ms:.2f} ms',
              transform=ax.transAxes, ha='right')
 
-    # Connect callbacks to update labels when the view changes (zoom or pan)
     ax.callbacks.connect('xlim_changed', lambda evt: on_zoom(evt, ax, num_freqs, sample_rate, center_frequency, num_windows, window_duration_ms))
     ax.callbacks.connect('ylim_changed', lambda evt: on_zoom(evt, ax, num_freqs, sample_rate, center_frequency, num_windows, window_duration_ms))
 

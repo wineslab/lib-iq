@@ -4,9 +4,22 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import math
+from typing import Literal, Sequence
 
-def process_data(iq_sample, data_format):
-    real = [x[0] for x in iq_sample]
+IQSample = Sequence[tuple[float, float]]
+DataFormat = Literal["real-imag", "magnitude-phase"]
+
+def process_data(iq_sample: IQSample, data_format: DataFormat) -> tuple[list[float], list[float]]:
+    """
+    Process I/Q data into either real-imaginary or magnitude-phase format.
+
+    Args:
+        iq_sample (Sequence[tuple[float, float]]): List of I/Q sample pairs.
+        data_format (Literal["real-imag", "magnitude-phase"]): Format to convert the I/Q data into.
+
+    Returns:
+        tuple[list[float], list[float]]: Two lists representing I and Q or phase and magnitude.
+    """    real = [x[0] for x in iq_sample]
     imag = [x[1] for x in iq_sample]
     if data_format == 'real-imag':
         return real, imag
@@ -18,8 +31,26 @@ def process_data(iq_sample, data_format):
             phase.append(math.atan2(imag[i], real[i]))
         return phase, magnitude
 
-def animated_scatterplot(iq_sample, data_format, interval=100, window=50, grids=False):
-    I_data, Q_data = process_data(iq_sample, data_format)
+def animated_scatterplot(
+                        iq_sample: IQSample,
+                        data_format: DataFormat,
+                        interval: int = 100,
+                        window: int = 50,
+                        grids: bool = False
+                    ) -> None:
+    """
+    Create an animated scatterplot of I/Q samples in real/imag or magnitude/phase format.
+
+    Args:
+        iq_sample (Sequence[tuple[float, float]]): List of I/Q sample pairs.
+        data_format (Literal["real-imag", "magnitude-phase"]): Format for plotting.
+        interval (int): Interval between animation frames in milliseconds.
+        window (int): Sliding window size for animation.
+        grids (bool): Whether to show gridlines.
+
+    Returns:
+        None
+    """    I_data, Q_data = process_data(iq_sample, data_format)
 
     if data_format == 'real-imag':
         iq_sample = np.array(iq_sample)
@@ -127,7 +158,18 @@ def animated_scatterplot(iq_sample, data_format, interval=100, window=50, grids=
     ani = animation.FuncAnimation(fig, update, frames=len(I_data), interval=interval, blit=True)
     plt.show()
 
-def scatterplot(iq, data_format, grids=False):
+def scatterplot(iq: IQSample, data_format: DataFormat, grids: bool = False) -> None:
+    """
+    Plot a static scatterplot of I/Q samples in real/imag or magnitude/phase format.
+
+    Args:
+        iq (Sequence[tuple[float, float]]): List of I/Q sample pairs.
+        data_format (Literal["real-imag", "magnitude-phase"]): Format for plotting.
+        grids (bool): Whether to show gridlines.
+
+    Returns:
+        None
+    """
     a_data, b_data = process_data(iq, data_format)
 
     fig, ax = plt.subplots(dpi=300)
@@ -185,7 +227,6 @@ def scatterplot(iq, data_format, grids=False):
         Q_ticks = np.linspace(phase_min, phase_max, 10)
 
         ax.set_yticks(I_ticks)
-        #ax.set_yticklabels([f'{tick*1e5:.2f}' for tick in I_ticks], color='white')
         ax.set_yticklabels([f'{tick:.2f}' for tick in I_ticks], color='white')
         ax.set_xticks(Q_ticks)
         ax.set_xticklabels([f'{tick:.2f}' for tick in Q_ticks], color='white')

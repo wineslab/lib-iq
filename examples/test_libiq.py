@@ -3,21 +3,11 @@ import libiq.plotter.scatterplot as scplt
 import libiq.plotter.spectrogram as sp
 import libiq.plotter.waterfall as wf
 
-import time
+from pathlib import Path
 
-start_time = time.time()
+LIBRARY_PATH = Path('../').resolve()
 
-platform = 'local'
-
-if platform == 'Docker':
-    capture_path = '/home/user/iq_samples'
-elif platform == 'Colosseum':
-    capture_path = '/iq_samples'
-elif platform == 'local':
-    #capture_path = '/home/user/Desktop/iq_samples'
-    capture_path = '/home/user/Desktop/catture'
-
-#input_file_path = f'{capture_path}/Noise/iqs_1738250838.bin'
+#input_file_path = f'{capture_ath}/Noise/iqs_1738250838.bin'
 #input_file_path = f'{capture_path}/Triangular/iqs_1738252157.bin'
 #input_file_path = f'{capture_path}/Sine/iqs_1738253375.bin'
 
@@ -121,8 +111,6 @@ print(len(iq_samples))
 '''
 iq = analyzer.get_iq_samples(input_file_path, data_type)
 fft = analyzer.generate_IQ_Spectrogram(iq, onverlap, window_size, sample_rate)
-middle_time = time.time()
-print(f"The code took {middle_time - start_time} seconds to read iq sample and to calculate fftw.")
 sp.spectrogram(fft, sample_rate, center_frequency)
 '''
 
@@ -131,7 +119,3 @@ iq = analyzer.get_iq_samples(input_file_path, start, end, data_type)
 scplt.scatterplot(iq, data_format, grids=grid)
 #scplt.animated_scatterplot(iq, data_format, interval=interval_update_scatterplot, window=window_size_scatterplot, grids=grid)
 '''
-
-end_time = time.time()
-elapsed_time = end_time - start_time
-print(f"The code took {elapsed_time} seconds to execute")
