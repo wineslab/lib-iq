@@ -27,7 +27,7 @@ int Converter::from_csv_or_bin_to_mat(const std::string& input_file_path, const 
         }
 
         std::string line;
-        std::getline(csv_file, line);  // header
+        std::getline(csv_file, line);
         std::istringstream header_stream(line);
         std::vector<std::string> headers;
         std::string col;
@@ -68,11 +68,10 @@ int Converter::from_csv_or_bin_to_mat(const std::string& input_file_path, const 
                 real.push_back(r);
                 imag.push_back(i);
             } catch (...) {
-                continue; // skip line if parsing fails
+                continue;
             }
         }
     } else {
-        // Binary reader for .bin/.iq files assuming int16_t interleaved
         std::ifstream file(input_file_path, std::ios::binary);
         if (!file) {
             std::cerr << "Error: File cannot be opened." << std::endl;
@@ -142,74 +141,77 @@ int Converter::from_csv_or_bin_to_mat(const std::string& input_file_path, const 
     return EXIT_SUCCESS;
 }
 
-void create_sigmf_meta(std::shared_ptr<mat_t> matfp, const std::string& output_file_path){
-    sigmf::SigMF<sigmf::VariadicDataClass<sigmf::core::GlobalT>, sigmf::VariadicDataClass<sigmf::core::CaptureT>, sigmf::VariadicDataClass<sigmf::core::AnnotationT> > sigmf_file;
-    auto new_capture = sigmf::VariadicDataClass<sigmf::core::CaptureT>();
-    auto new_annotation = sigmf::VariadicDataClass<sigmf::core::AnnotationT>();
+void create_sigmf_meta(std::shared_ptr<mat_t> matfp, const std::string& output_file_path) {
+    using GlobalT = sigmf::core::GlobalT;
+    using CaptureT = sigmf::core::CaptureT;
+    using AnnotationT = sigmf::core::AnnotationT;
+
+    sigmf::SigMF<
+        sigmf::VariadicDataClass<GlobalT>,
+        sigmf::VariadicDataClass<CaptureT>,
+        sigmf::VariadicDataClass<AnnotationT>> sigmf_file;
+
+    auto& global = sigmf_file.global.access<GlobalT>();
+    auto new_capture = sigmf::VariadicDataClass<CaptureT>();
+    auto new_annotation = sigmf::VariadicDataClass<AnnotationT>();
+
     std::shared_ptr<matvar_t> matvar = nullptr;
     while ((matvar = std::shared_ptr<matvar_t>(Mat_VarReadNext(matfp.get()), Mat_VarFree)) != nullptr) {
+        std::string var_name = matvar->name ? matvar->name : "";
+
         switch (matvar->class_type) {
             case MAT_C_DOUBLE: {
-                double *data = static_cast<double*>(matvar->data);
-                if(strcmp(matvar->name, "freq_lower_edge")==0){
-                    new_annotation.access<sigmf::core::AnnotationT>().freq_lower_edge = *data;
-                }
-                if(strcmp(matvar->name, "freq_upper_edge")==0){
-                    new_annotation.access<sigmf::core::AnnotationT>().freq_upper_edge = *data;
-                }
-                if(strcmp(matvar->name, "frequency")==0){
-                    new_capture.access<sigmf::core::CaptureT>().frequency = *data;
-                }
-                if(strcmp(matvar->name, "sample_rate")==0){
-                    sigmf_file.global.access<sigmf::core::GlobalT>().sample_rate = *data;
+                double* data = static_cast<double*>(matvar->data);
+                if (var_name == "freq_lower_edge") {
+                    new_annotation.access<AnnotationT>().freq_lower_edge = *data;
+                } else if (var_name == "freq_upper_edge") {
+                    new_annotation.access<AnnotationT>().freq_upper_edge = *data;
+                } else if (var_name == "frequency") {
+                    new_capture.access<CaptureT>().frequency = *data;
+                } else if (var_name == "sample_rate") {
+                    global.sample_rate = *data;
                 }
                 break;
             }
             case MAT_C_UINT64: {
-                uint64_t *data = static_cast<uint64_t*>(matvar->data);
-                if(strcmp(matvar->name, "global_index")==0){
-                    new_capture.access<sigmf::core::CaptureT>().global_index = *data;
-                }
-                if(strcmp(matvar->name, "sample_start")==0){
-                    new_capture.access<sigmf::core::CaptureT>().sample_start = *data;
+                uint64_t* data = static_cast<uint64_t*>(matvar->data);
+                if (var_name == "global_index") {
+                    new_capture.access<CaptureT>().global_index = *data;
+                } else if (var_name == "sample_start") {
+                    new_capture.access<CaptureT>().sample_start = *data;
+                    new_annotation.access<AnnotationT>().sample_start = *data;
                 }
                 break;
             }
             case MAT_C_CHAR: {
-                std::string data(static_cast<char*>(matvar->data), matvar->nbytes);
-                data.erase(std::remove(data.begin(), data.end(), '\0'), data.end());
-                if(strcmp(matvar->name, "hw")==0){
-                    sigmf_file.global.access<sigmf::core::GlobalT>().hw = data;
-                }
-                if(strcmp(matvar->name, "version")==0){
-                    sigmf_file.global.access<sigmf::core::GlobalT>().version = data;
+                std::string str(static_cast<char*>(matvar->data), matvar->nbytes);
+                str.erase(std::remove(str.begin(), str.end(), '\0'), str.end());
+                if (var_name == "hw") {
+                    global.hw = str;
+                } else if (var_name == "version") {
+                    global.version = str;
                 }
                 break;
             }
             default:
-                std::cerr << "Unhandled data type" << std::endl;
+                std::cerr << "Unhandled data type for variable: " << var_name << std::endl;
                 break;
         }
-        matvar = nullptr;
     }
 
     sigmf_file.captures.emplace_back(new_capture);
     sigmf_file.annotations.emplace_back(new_annotation);
 
-    std::stringstream json_output;
-    json_output << json(sigmf_file).dump(4) << std::flush;
+    std::ofstream out_file(output_file_path);
+    if (!out_file.is_open()) {
+        std::cerr << "Error: Could not open output file: " << output_file_path << std::endl;
+        return;
+    }
 
-    std::ofstream file_out(output_file_path);
-    if (file_out.is_open())
-    {
-        file_out << json_output.str();
-        file_out.close();
-        std::cout << "File saved in: " << output_file_path << std::endl;
-    }
-    else 
-    {
-        std::cerr << "Error: File cannot be opened" << std::endl;
-    }
+    out_file << nlohmann::json(sigmf_file).dump(4);
+    out_file.close();
+
+    std::cout << "SigMF metadata written to: " << output_file_path << std::endl;
 }
 
 
@@ -223,7 +225,7 @@ int Converter::from_mat_to_sigmf(const std::string& input_file_path, const std::
         return EXIT_FAILURE;
     }
 
-    if (input_filepath.extension() != ".mat"){
+    if (input_filepath.extension() != ".mat") {
         std::cerr << "Error: File extension not valid, .mat is required " << input_filepath << std::endl;
         return EXIT_FAILURE;
     }

@@ -10,22 +10,24 @@ authors = [
   { name = "Your Name", email = "you@example.com" }
 ]
 readme = "README.md"
-license = {file = "LICENSE"}
+license = "MIT"
+license-files = ["LICENSE"]
+
 requires-python = ">=3.8"
 
 dependencies = [
-    "cython",
-    "scikit-learn",
-    "scipy",
-    "h5py",
-    "tensorflow",
-    "tslearn",
-    "yellowbrick",
-    "pandas",
-    "numpy==1.24.3",
-    "ydata-profiling",
-    "pydot",
-    "SciencePlots",
+  "cython",
+  "scikit-learn",
+  "scipy",
+  "h5py",
+  "tensorflow",
+  "tslearn",
+  "yellowbrick",
+  "pandas",
+  "numpy==1.24.3",
+  "ydata-profiling",
+  "pydot",
+  "SciencePlots",
 ]
 
 [tool.setuptools.packages.find]

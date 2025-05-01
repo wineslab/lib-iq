@@ -8,11 +8,17 @@
 #include <filesystem>
 #include <chrono>
 #include <cassert>
-#include <iostream>
 #include <map>
 #include <matio.h>
 #include <nlohmann/json.hpp>
-#include <sigmf.h>
+#include <sigmf/sigmf.h>
+#include <sigmf/global.h>
+#include <sigmf/capture.h>
+#include <sigmf/annotation.h>
+#include <sigmf/variadic_data_class.h>
+#include <memory>
+#include <cstring>
+#include <algorithm>
 
 using json = nlohmann::json;
 
