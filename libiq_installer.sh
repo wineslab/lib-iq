@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 clear
 BASE_PATH="$(pwd)"
 
@@ -13,7 +14,7 @@ if [[ "$(basename "$BASE_PATH")" == "libiq" ]]; then
     git pull origin libiq_clean || { echo "Failed to pull updates from libiq_clean branch."; exit 1; }
 
     echo "Updating submodules..."
-    git submodule update --init --recursive libs/libsigmf libs/RFDataFactory libs/sdr_channelizer libs/zlib || echo "Problem initializing submodules"
+    git submodule update --init --recursive libs/libsigmf libs/RFDataFactory libs/sdr_channelizer libs/zlib libs/hdf5 || echo "Problem initializing submodules"
     git submodule update --init libs/matio
 else
     BASE_DIR="$BASE_PATH/libiq"
@@ -29,14 +30,13 @@ else
         cd "$BASE_DIR" || { echo "Directory $BASE_DIR not found!"; exit 1; }
 
         echo "Updating submodules in $BASE_DIR"
-        git submodule update --init --recursive libs/libsigmf libs/RFDataFactory libs/sdr_channelizer libs/zlib || echo "Problem initializing submodules"
+        git submodule update --init --recursive libs/libsigmf libs/RFDataFactory libs/sdr_channelizer libs/zlib libs/hdf5 || echo "Problem initializing submodules"
         git submodule update --init libs/matio
     fi
 fi
 
 ZLIB_DIR="$LIBS_DIR/zlib"
-HDF5_ARCHIVE="$LIBS_DIR/hdf5-1_14_3.tar.gz"
-HDF5_DIR="$LIBS_DIR/hdf5-hdf5-1_14_3"
+HDF5_DIR="$LIBS_DIR/hdf5"
 FFTW_ARCHIVE="$LIBS_DIR/fftw-3.3.10.tar.gz"
 FFTW_DIR="$LIBS_DIR/fftw-3.3.10"
 MATIO_DIR="$LIBS_DIR/matio"
@@ -101,7 +101,6 @@ else
     install_package "python3.10"
     install_package "python3.10-venv"
     install_package "python3.10-dev"
-    install_package "python3.10-distutils"
     install_package "python3.10-tk"
 fi
 
@@ -136,7 +135,7 @@ if command -v "$LIBTOOL_BIN" &> /dev/null; then
     echo "$LIBTOOL_BIN is already installed (version $version). Skipping installation."
 else
     echo "Installing libtool and libtool-bin..."
-    sudo apt install -y libtool libtool-bin || { echo "Error installing libtool."; exit 1; }
+    sudo apt install -y libtool|| { echo "Error installing libtool."; exit 1; }
 fi
 
 if [ -f "$ZLIB_INCLUDE" ]; then
@@ -158,23 +157,6 @@ fi
 if [ -d "$HDF5_INCLUDE" ]; then
     echo "HDF5 is already installed in /usr/local/include/. Skipping configuration, build, and installation."
 else
-    if [ -d "$HDF5_DIR" ]; then
-        echo "The directory $HDF5_DIR already exists. Skipping download and extraction."
-    else
-        if [ -f "$HDF5_ARCHIVE" ]; then
-            echo "The file $HDF5_ARCHIVE already exists. Skipping download."
-        else
-            echo "Downloading HDF5..."
-            wget -O "$HDF5_ARCHIVE" https://github.com/HDFGroup/hdf5/archive/refs/tags/hdf5-1_14_3.tar.gz \
-                || { echo "Error downloading HDF5."; exit 1; }
-        fi
-
-        echo "Unpacking $HDF5_ARCHIVE"
-        tar -xzf "$HDF5_ARCHIVE" -C "$LIBS_DIR" \
-            || { echo "Error unpacking HDF5."; exit 1; }
-        rm "$HDF5_ARCHIVE"
-    fi
-
     echo "Entering $HDF5_DIR/"
     cd "$HDF5_DIR" || { echo "Directory $HDF5_DIR not found!"; exit 1; }
 
@@ -269,3 +251,5 @@ else
 fi
 
 sudo ldconfig
+
+echo "Success"
