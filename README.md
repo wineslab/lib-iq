@@ -118,3 +118,11 @@ source ./.libiq_venv310/bin/activate
 pip install --upgrade pip
 ```
 Then continue from step 3 of the automatic installation section (Build the LibIQ Python Package).
+
+It may be necessary to run `export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH` for a temporary solution or
+```
+echo 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH' >> ~/.bashrc
+source ~/.bashrc
+```
+for a permanent solution
+
