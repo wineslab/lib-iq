@@ -27,7 +27,6 @@ pip install build hatch
 ```
 If hatch is installed, execute
 ```
-hatch env create
 hatch build
 ```
 
