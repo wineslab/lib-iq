@@ -7,12 +7,12 @@ name = "libiq"
 version = "0.1.0"
 description = "LibIQ is a unified Python library that provides tools for analyzing and manipulating IQ samples, along with time-series-based classification functionalities."
 authors = [
-  { name = "Filippo Olimpieri", email = "olimpieri.1933529@studenti.uniroma1.it" },
-  { name = "Noemi Giustini", email = "giustini.1933541@studenti.uniroma1.it"},
-  { name = "Andrea Lacava", email = "lacava.a@northeastern.edu"},
-  { name = "Salvatore D’Oro", email = " s.doro@northeastern.edu"},
-  { name = "Tommaso Melodia", email = " t.melodia@northeastern.edu"},
-  { name = "Francesca Cuomo", email = " francesca.cuomo@uniroma1.it"}
+  { name = "Filippo Olimpieri", email = "filippo.olimpieri@gmail.com" },
+  { name = "Noemi Giustini", email = "noemi.giustini.2001@gmail.com"},
+  { name = "Andrea Lacava", email = "thecave003@gmail.com"},
+  { name = "Salvatore D’Oro"},
+  { name = "Tommaso Melodia"},
+  { name = "Francesca Cuomo"}
 ]
 readme = "README.md"
 license = "Apache-2.0"
@@ -32,6 +32,7 @@ dependencies = [
   "numpy==1.24.3",
   "pydot",
   "SciencePlots",
+  "seaborn",
 ]
 
 [project.optional-dependencies]
@@ -41,3 +42,6 @@ profile = [
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+"libiq" = ["*.so"]
