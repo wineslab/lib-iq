@@ -359,10 +359,15 @@ std::vector<std::vector<double>> Analyzer::generate_IQ_Spectrogram(const std::st
         for (int j = 0; j < window_size; ++j) {
             double re = fft_result[j][0];
             double im = fft_result[j][1];
-            double magnitude2 = re * re + im * im;
-            double power = magnitude2 / window_size;
-            double power_db = 10.0 * std::log10(power + 1e-20);
-            result[i][j] = power_db;
+            double magnitude = std::sqrt(re * re + im * im);
+            double power = (magnitude * magnitude) / iq_sample_size;
+            double power_db_per_rad_sample;
+            if (power <= 0.0) {
+                power_db_per_rad_sample = -120.0;
+            } else {
+                power_db_per_rad_sample = 10.0 * std::log10(power) - 10.0 * std::log10(2.0 * M_PI / sample_rate);
+            }
+            result[i][j] = power_db_per_rad_sample;
         }
     }
     return result;
@@ -401,7 +406,12 @@ std::vector<std::vector<double>> Analyzer::generate_IQ_Spectrogram(const std::ve
             double im = fft_result[j][1];
             double magnitude = std::sqrt(re * re + im * im);
             double power = (magnitude * magnitude) / iq_sample_size;
-            double power_db_per_rad_sample = 10.0 * std::log10(power) - 10.0 * std::log10(2.0 * M_PI / sample_rate);
+            double power_db_per_rad_sample;
+            if (power <= 0.0) {
+                power_db_per_rad_sample = -120.0;
+            } else {
+                power_db_per_rad_sample = 10.0 * std::log10(power) - 10.0 * std::log10(2.0 * M_PI / sample_rate);
+            }
             result[i][j] = power_db_per_rad_sample;
         }
     }
