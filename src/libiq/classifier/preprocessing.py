@@ -4,7 +4,6 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from typing import List, Tuple, Union
 from libiq.utils.constants import RANDOM_STATE
-from ydata_profiling import ProfileReport
 
 def load_csv(file_path: str, columns: List[str]) -> pd.DataFrame:
     """
@@ -73,9 +72,17 @@ def preprocess_data(csv_file_path: str,
     df = normalize(df)
     
     if report and report_path:
-        pr = ProfileReport(df, title="Profiling Report", explorative=True)
-        pr.to_file(report_path)
-        print(f"Profiling report saved to: {report_path}")
+        try:
+            from ydata_profiling import ProfileReport
+            pr = ProfileReport(df, title="Profiling Report", explorative=True)
+            pr.to_file(report_path)
+            print(f"Profiling report saved to: {report_path}")
+        except ImportError:
+            raise ImportError(
+                "Optional dependency 'ydata-profiling' is not installed. "
+                "You can install it with: pip install libiq[profile]"
+            )
+
     
     grouped = df.groupby('File', sort=False)
     

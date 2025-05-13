@@ -30,7 +30,7 @@ else
         cd "$BASE_DIR" || { echo "Directory $BASE_DIR not found!"; exit 1; }
 
         echo "Updating submodules in $BASE_DIR"
-        git submodule update --init --recursive libs/libsigmf libs/RFDataFactory libs/sdr_channelizer libs/zlib libs/hdf5 || echo "Problem initializing submodules"
+        git submodule update --init --recursive libs/libsigmf libs/zlib libs/hdf5 || echo "Problem initializing submodules"
         git submodule update --init libs/matio
     fi
 fi
@@ -102,6 +102,7 @@ else
     install_package "python3.10-venv"
     install_package "python3.10-dev"
     install_package "python3.10-tk"
+    install_package "python3-pip"
 fi
 
 install_package "graphviz"
