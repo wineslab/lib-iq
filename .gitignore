@@ -1,16 +1,8 @@
-/libiq_build
-
 *libiq_wrap.cxx
 
 **/__pycache__/
 **/_libiq.cpython*
 **/libiq.py
-**/iq_samples/
-
-/examples/iq_samples_fourier
-/examples/iq_samples_sigmf
-/examples/iq_samples_mat
-/examples/iq_samples/*
 
 /examples/demo/iq_samples/*
 
@@ -20,13 +12,9 @@ src/libiq.egg-info
 *libiq_wrapped_wrap.cpp
 src/libiq/_libiqwrapped.cpython-310-x86_64-linux-gnu.so
 src/libiq/libiqwrapped.py
-examples/test_results/iq_samples
-examples/test_results/plots
 
-build/lib.linux-x86_64-cpython-310/libiq/_libiqwrapped.cpython-310-x86_64-linux-gnu.so
 build/*
 
-examples/test_results/models
+examples/test_results/*
 libs/zlib
-dist/libiq-0.1.0-cp310-cp310-linux_x86_64.whl
-dist/libiq-0.1.0.tar.gz
+dist/*

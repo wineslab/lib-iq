@@ -5,12 +5,17 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "libiq"
 version = "0.1.0"
-description = "Unified libiq library including classification functionalities"
+description = "LibIQ is a unified Python library that provides tools for analyzing and manipulating IQ samples, along with time-series-based classification functionalities."
 authors = [
-  { name = "Your Name", email = "you@example.com" }
+  { name = "Filippo Olimpieri", email = "olimpieri.1933529@studenti.uniroma1.it" },
+  { name = "Noemi Giustini", email = "giustini.1933541@studenti.uniroma1.it"},
+  { name = "Andrea Lacava", email = "lacava.a@northeastern.edu"},
+  { name = "Salvatore D’Oro", email = " s.doro@northeastern.edu"},
+  { name = "Tommaso Melodia", email = " t.melodia@northeastern.edu"},
+  { name = "Francesca Cuomo", email = " francesca.cuomo@uniroma1.it"}
 ]
 readme = "README.md"
-license = "MIT"
+license = "Apache-2.0"
 license-files = ["LICENSE"]
 
 requires-python = ">=3.8"
