@@ -70,17 +70,17 @@ def scatterplot(iq: IQSample, data_format: DataFormat, grids: bool = False) -> N
         a_scaled = np.array(a_data) / scale
         b_scaled = np.array(b_data) / scale
 
-        ax.scatter(a_scaled, b_scaled, s=0.1, c='lime')
+        ax.scatter(a_scaled, b_scaled, s=0.1, c='white')
 
-        ax.set_xlim(a_scaled.min()*1.1 - 2, a_scaled.max()*1.1 + 2)
-        ax.set_ylim(b_scaled.min()*1.1 - 2, b_scaled.max()*1.1 + 2)
+        ax.set_xlim(b_scaled.min()*1.1 - 2, b_scaled.max()*1.1 + 2)
+        ax.set_ylim(a_scaled.min()*1.1 - 2, a_scaled.max()*1.1 + 2)
 
         if grids:
             ax.grid(True, color='gray', linestyle='--', linewidth=0.5)
 
         ax.set_title('I/Q Scatter Plot (Real-Imag)', color='white', y=1.07)
-        ax.set_xlabel(f'Q_data ({suffix})', color='white')
-        ax.set_ylabel(f'I_data ({suffix})', color='white')
+        ax.set_xlabel(f'I_data ({suffix})', color='white')
+        ax.set_ylabel(f'Q_data ({suffix})', color='white')
 
     elif data_format == 'magnitude-phase':
         max_val = max(abs(m) for m in b_data)
