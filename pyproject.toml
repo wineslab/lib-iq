@@ -10,9 +10,6 @@ authors = [
   { name = "Filippo Olimpieri", email = "filippo.olimpieri@gmail.com" },
   { name = "Noemi Giustini", email = "noemi.giustini.2001@gmail.com"},
   { name = "Andrea Lacava", email = "thecave003@gmail.com"},
-  { name = "Salvatore D’Oro"},
-  { name = "Tommaso Melodia"},
-  { name = "Francesca Cuomo"}
 ]
 readme = "README.md"
 license = "Apache-2.0"

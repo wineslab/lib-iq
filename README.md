@@ -117,14 +117,6 @@ hatch build
 ```
 pip install dist/libiq-0.1.0.tar.gz
 ```
-## Automated Script for Build and Installation
-We provide also a bash script that performs the steps descripted above automatically.
-
-To execute the script, from inside the libiq directory do:
-```
-./libiq_installer.sh
-```
-This script handles all system-level and Python dependency setup automatically.
 ## After installation steps
 It may be necessary to run `export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH` and `export PATH="$HOME/.local/bin:$PATH"`
 for a temporary solution.
