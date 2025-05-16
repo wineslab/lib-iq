@@ -12,6 +12,7 @@ authors = [
   { name = "Andrea Lacava", email = "thecave003@gmail.com"},
 ]
 readme = "README.md"
+dynamic = ["version"]
 license = "Apache-2.0"
 license-files = ["LICENSE"]
 
@@ -45,3 +46,12 @@ where = ["src"]
 
 [tool.hatch.envs.default]
 python = "3.10"
+
+[tool.hatch.version]
+path = "VERSION"
+pattern = "(?P<version>\\d+\\.\\d+\\.\\d+)"
+
+[project.urls]
+Package = ""  #PYPI LINK
+Source = "https://github.com/wineslab/lib-iq.git"
+"Bug Tracker" = "https://github.com/wineslab/lib-iq/issues"
