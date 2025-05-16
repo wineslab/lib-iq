@@ -52,6 +52,6 @@ path = "VERSION"
 pattern = "(?P<version>\\d+\\.\\d+\\.\\d+)"
 
 [project.urls]
-Package = ""  #PYPI LINK
+#Package = ""  #PYPI LINK
 Source = "https://github.com/wineslab/lib-iq.git"
 "Bug Tracker" = "https://github.com/wineslab/lib-iq/issues"
