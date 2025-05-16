@@ -43,7 +43,7 @@ module = Extension(
 
 setup(
     name='libiq',
-    version='0.1.0',
+    use_scm_version=True,
     packages=find_packages(where='src'),
     package_dir={'': 'src'},
     ext_modules=[module],

@@ -115,7 +115,7 @@ hatch build
 ```
 ### Install the Package
 ```
-pip install dist/libiq-0.1.0.tar.gz
+pip install dist/libiq-*.tar.gz
 ```
 ## After installation steps
 It may be necessary to run `export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH` and `export PATH="$HOME/.local/bin:$PATH"`
@@ -140,7 +140,7 @@ You can install LibIQ with profiling support like this:
 If you do not already have built and installed libiq, do:
 ```
 # Inside your virtual environment
-pip install dist/libiq-0.1.0.tar.gz[profile]
+pip install dist/libiq-*.tar.gz[profile]
 ```
 If you already installed LibIQ and want to add profiling support later:
 ```
