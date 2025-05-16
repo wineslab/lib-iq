@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel", "build", "setuptools-scm"]
+requires = ["setuptools>=61.0", "wheel", "build"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -11,7 +11,7 @@ authors = [
   { name = "Andrea Lacava", email = "thecave003@gmail.com"},
 ]
 readme = "README.md"
-dynamic = ["version"]
+version = "0.1.0"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
 
@@ -45,10 +45,6 @@ where = ["src"]
 
 [tool.hatch.envs.default]
 python = "3.10"
-
-[tool.setuptools_scm]
-version_file = "VERSION.txt"
-fallback_version = "0.1.0"
 
 [project.urls]
 #Package = ""  #PYPI LINK

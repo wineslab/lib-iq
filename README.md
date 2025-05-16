@@ -106,7 +106,7 @@ deactivate
 ### Build the LibIQ Python Package
 If hatch is not already installed, install it with:
 ```
-pip install build hatch
+pip install build hatch setuptools-scm
 ```
 If hatch is installed, execute
 ```
