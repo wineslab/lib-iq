@@ -1,15 +1,13 @@
-/libiq_build
-
-/src/libiq_wrap.cxx
+*libiq_wrap.cxx
 
 **/__pycache__/
 **/_libiq.cpython*
-**/libiq.py
-**/iq_samples/
 
-/examples/iq_samples_fourier
-/examples/iq_samples_sigmf
-/examples/iq_samples_mat
-/examples/iq_samples/*
+src/libiq.egg-info
+*libiq_wrapped_wrap.cpp
+src/libiq/_libiqwrapped.cpython-3*-x86_64-linux-gnu.so
+src/libiq/libiqwrapped.py
 
-/examples/demo/iq_samples/*
+examples/test_results/*
+dist/*
+docs/sample_data/test_results/*

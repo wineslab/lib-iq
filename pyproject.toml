@@ -1,0 +1,63 @@
+[build-system]
+requires = ["setuptools>=80.0", "wheel", "build"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "libiq"
+description = "LibIQ is a unified Python library that provides tools for analyzing and manipulating IQ samples, along with time-series-based classification functionalities."
+authors = [
+  { name = "Filippo Olimpieri", email = "filippo.olimpieri@gmail.com"},
+  { name = "Noemi Giustini", email = "noemi.giustini.2001@gmail.com"},
+  { name = "Andrea Lacava", email = "thecave003@gmail.com"}
+]
+readme = "README.md"
+license = "Apache-2.0"
+dynamic = ["version"]
+license-files = ["LICENSE"]
+
+requires-python = ">=3.9,<3.13"
+
+dependencies = [
+  "cython",
+  "scikit-learn",
+  "scipy",
+  "h5py",
+  "tensorflow",
+  "tslearn",
+  "yellowbrick",
+  "pandas",
+  "numpy",
+  "pydot",
+  "seaborn",
+  "pytest"
+]
+
+[project.optional-dependencies]
+report = [
+  "ydata-profiling",
+]
+styles = [
+  "SciencePlots",
+]
+all = [
+  "ydata-profiling",
+  "SciencePlots",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"libiq" = ["*.so"]
+
+[tool.hatch.envs.default]
+python = "3.10"
+
+[tool.hatch.build]
+sources = ["src"]
+
+[project.urls]
+Publication = "https://www.arxiv.org/abs/2505.10537"
+Package = "https://pypi.org/project/libiq"
+Source = "https://github.com/wineslab/lib-iq"
+"Bug Tracker" = "https://github.com/wineslab/lib-iq/issues"
