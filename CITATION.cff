@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+title: libiq
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Filippo
+    family-names: Olimpieri
+    email: olimpieri.1933529@studenti.uniroma1.it
+    affiliation: La Sapienza University of Rome
+  - given-names: Noemi
+    family-names: Giustini
+    email: giustini.1933541@studenti.uniroma1.it
+    affiliation: La Sapienza University of Rome
+  - given-names: Andrea
+    family-names: Lacava
+    email: lacava.a@northeastern.edu
+    affiliation: Northeastern University
+  - given-names: Salvatore
+    family-names: D'Oro
+    email: s.doro@northeastern.edu
+    affiliation: Northeastern University
+  - given-names: Tommaso
+    family-names: Melodia
+    email: t.melodia@northeastern.edu
+    affiliation: Northeastern University
+  - given-names: Francesca
+    family-names: Cuomo
+    email: francesca.cuomo@uniroma1.it
+    affiliation: La Sapienza University of Rome
+repository-code: 'https://github.com/wineslab/lib-iq'
+license: Apache-2.0
