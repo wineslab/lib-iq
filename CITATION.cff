@@ -30,4 +30,17 @@ authors:
     email: francesca.cuomo@uniroma1.it
     affiliation: La Sapienza University of Rome
 repository-code: 'https://github.com/wineslab/lib-iq'
+abstract: >-
+  This paper has been accepted for publication on IEEE
+  Mediterranean Communication and Computer Networking
+  Conference (MedComNet 2025).
+
+  This is the author's accepted version of the article.
+
+  The final version published by IEEE is F. Olimpieri, N.
+  Giustini, A. Lacava, S. D'Oro, T. Melodia, and F. Cuomo,
+  ``LibIQ: Toward Real-Time Spectrum Classification in O-RAN
+  dApps,'' Proc. of  \textit{IEEE Mediterranean
+  Communication and Computer Networking Conference
+  (MedComNet)}, Cagliari, Italy, 2025.
 license: Apache-2.0
