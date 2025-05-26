@@ -68,16 +68,21 @@ jobs:
 
       - name: Build and repair wheel inside manylinux container
         run: |
+          export HOST_UID=$(id -u)
+          export HOST_GID=$(id -g)
           docker run --rm \
             -v ${{ github.workspace }}:/libiq \
             -w /libiq \
+            -e HOST_UID=$HOST_UID \
+            -e HOST_GID=$HOST_GID \
             quay.io/pypa/manylinux_2_28_x86_64 \
             /bin/bash -c "
               yum install -y git wget graphviz swig make automake gcc gcc-c++ libtool &&
               export PATH=\"/opt/python/cp310-cp310/bin:\$PATH\" &&
               python3 -m pip install --upgrade pip setuptools wheel hatch &&
               bash build.sh &&
-              auditwheel repair dist/*.whl -w repaired_wheels
+              auditwheel repair dist/*.whl -w repaired_wheels &&
+              chown -R \$HOST_UID:\$HOST_GID dist repaired_wheels
             "
 
       - name: Clean original .whl and move repaired wheel to dist/
