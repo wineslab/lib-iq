@@ -1,7 +1,7 @@
 name: Pytest
 
 on:
-  push:
+  pull_request:
     branches:
       - main
 
@@ -9,7 +9,7 @@ jobs:
   pytest:
     name: Run pytest
     runs-on: ubuntu-22.04
-    if: ${{github.repository == 'wineslab/lib-iq' }}
+    if: ${{github.repository == 'wineslab/libiq' }}
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python

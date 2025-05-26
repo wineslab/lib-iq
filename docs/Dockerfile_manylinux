@@ -1,0 +1,39 @@
+FROM quay.io/pypa/manylinux_2_28_x86_64
+
+ENV PATH="/opt/python/cp310-cp310/bin:$PATH"
+
+RUN yum install -y \
+        git \
+        wget \
+        graphviz \
+        swig \
+        make \
+        automake \
+        gcc \
+        gcc-c++ \
+        libtool \
+    && yum clean all
+
+RUN python3 -m pip install --upgrade \
+    pip \
+    setuptools \
+    wheel \
+    hatch
+
+RUN git clone -b main https://github.com/wineslab/lib-iq /libiq
+
+WORKDIR /libiq
+
+RUN bash build.sh
+
+RUN auditwheel repair dist/*.whl -w repaired_wheels
+
+WORKDIR repaired_wheels
+
+RUN pip install libiq*.whl
+
+WORKDIR /libiq
+
+RUN rm -rf repaired_wheels dist
+
+CMD ["/bin/bash"]

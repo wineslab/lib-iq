@@ -29,6 +29,21 @@ It is structured into four main classes:
 
 Libiq has been successfully tested with python 3.9, 3.10,  3.11 and 3.12.
 
+If you use the libiq library to develop your own works, please cite the following paper:
+
+```
+@inproceedings{olimpieri2025libiq,
+  author    = {Olimpieri, Filippo and Giustini, Noemi and Lacava, Andrea and D’Oro, Salvatore and Melodia, Tommaso and Cuomo, Francesca},
+  title     = {{LibIQ: Toward Real-Time Spectrum Classification in O-RAN dApps}},
+  booktitle = {Proceedings of the IEEE Mediterranean Communication and Computer Networking Conference (MedComNet)},
+  year      = {2025},
+  address   = {Cagliari, Italy},
+  organization = {IEEE}
+}
+```
+
+arxiv url: https://arxiv.org/abs/2505.10537
+
 ## Installation
 
 There are two different ways to install Libiq
@@ -128,18 +143,3 @@ pip install dist/libiq-*.tar.gz
 ```
 
 Then if you want to install the optional dependencies, do as in [Package repository installation](#package-repository-installation)
-
-If you use the libiq library to develop your own works, please cite the following paper:
-
-```
-@inproceedings{olimpieri2025libiq,
-  author    = {Olimpieri, Filippo and Giustini, Noemi and Lacava, Andrea and D’Oro, Salvatore and Melodia, Tommaso and Cuomo, Francesca},
-  title     = {{LibIQ: Toward Real-Time Spectrum Classification in O-RAN dApps}},
-  booktitle = {Proceedings of the IEEE Mediterranean Communication and Computer Networking Conference (MedComNet)},
-  year      = {2025},
-  address   = {Cagliari, Italy},
-  organization = {IEEE}
-}
-```
-
-arxiv url: https://arxiv.org/abs/2505.10537
