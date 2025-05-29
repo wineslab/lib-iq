@@ -9,7 +9,7 @@ jobs:
   create-tag:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.set_version.outputs.version }}
+      version: ${{ steps.get_version.outputs.version }}
       tag_created: ${{ steps.set_output.outputs.tag_created }}
     steps:
       - name: Checkout repository
@@ -48,11 +48,6 @@ jobs:
             echo "tag_created=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Set version output
-        id: set_version
-        run: |
-          echo "version=${{ steps.get_version.outputs.version }}" >> $GITHUB_OUTPUT
-
   build:
     name: Build manylinux distribution 📦
     runs-on: ubuntu-latest
@@ -66,7 +61,58 @@ jobs:
       - name: Pull manylinux image
         run: docker pull quay.io/pypa/manylinux_2_28_x86_64
 
-      - name: Build and repair wheel inside manylinux container
+      - name: Build and repair wheel inside manylinux container for python3.9
+        run: |
+          export HOST_UID=$(id -u)
+          export HOST_GID=$(id -g)
+          docker run --rm \
+            -v ${{ github.workspace }}:/libiq \
+            -w /libiq \
+            -e HOST_UID=$HOST_UID \
+            -e HOST_GID=$HOST_GID \
+            quay.io/pypa/manylinux_2_28_x86_64 \
+            /bin/bash -c "
+              yum install -y git wget graphviz swig make automake gcc gcc-c++ libtool &&
+              export PATH=\"/opt/python/cp39-cp39/bin:\$PATH\" &&
+              python3 -m pip install --upgrade pip setuptools wheel hatch &&
+              bash build.sh
+            "
+
+      - name: Build and repair wheel inside manylinux container for python3.11
+        run: |
+          export HOST_UID=$(id -u)
+          export HOST_GID=$(id -g)
+          docker run --rm \
+            -v ${{ github.workspace }}:/libiq \
+            -w /libiq \
+            -e HOST_UID=$HOST_UID \
+            -e HOST_GID=$HOST_GID \
+            quay.io/pypa/manylinux_2_28_x86_64 \
+            /bin/bash -c "
+              yum install -y git wget graphviz swig make automake gcc gcc-c++ libtool &&
+              export PATH=\"/opt/python/cp311-cp311/bin:\$PATH\" &&
+              python3 -m pip install --upgrade pip setuptools wheel hatch &&
+              bash build.sh
+            "
+
+      - name: Build and repair wheel inside manylinux container for python3.12
+        run: |
+          export HOST_UID=$(id -u)
+          export HOST_GID=$(id -g)
+          docker run --rm \
+            -v ${{ github.workspace }}:/libiq \
+            -w /libiq \
+            -e HOST_UID=$HOST_UID \
+            -e HOST_GID=$HOST_GID \
+            quay.io/pypa/manylinux_2_28_x86_64 \
+            /bin/bash -c "
+              yum install -y git wget graphviz swig make automake gcc gcc-c++ libtool &&
+              export PATH=\"/opt/python/cp312-cp312/bin:\$PATH\" &&
+              python3 -m pip install --upgrade pip setuptools wheel hatch &&
+              bash build.sh
+            "
+
+      - name: Build and repair wheel inside manylinux container for python3.10
         run: |
           export HOST_UID=$(id -u)
           export HOST_GID=$(id -g)
@@ -87,7 +133,6 @@ jobs:
 
       - name: Clean original .whl and move repaired wheel to dist/
         run: |
-          mkdir -p dist
           rm dist/libiq-*.whl
           cp repaired_wheels/*.whl dist/
 
@@ -99,7 +144,9 @@ jobs:
 
   publish-to-pypi:
     name: Publish to PyPI
-    needs: build
+    needs: 
+      - build
+      - create-tag
     runs-on: ubuntu-latest
     if: ${{ needs.create-tag.outputs.tag_created == 'true' && github.repository == 'wineslab/lib-iq' }}
     environment:
@@ -118,7 +165,9 @@ jobs:
 
   github-release:
     name: Sign packages with Sigstore and upload them to GitHub Release
-    needs: publish-to-pypi
+    needs: 
+      - publish-to-pypi
+      - create-tag
     runs-on: ubuntu-latest
     if: ${{ needs.create-tag.outputs.tag_created == 'true' && github.repository == 'wineslab/lib-iq' }}
     permissions:
@@ -147,7 +196,9 @@ jobs:
 
   publish-to-testpypi:
     name: Publish to TestPyPI
-    needs: build
+    needs: 
+      - build
+      - create-tag
     runs-on: ubuntu-latest
     if: ${{ needs.create-tag.outputs.tag_created == 'true' && github.repository == 'wineslab/lib-iq' }}
     environment:
