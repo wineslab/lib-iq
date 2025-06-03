@@ -35,6 +35,9 @@ rcParams["axes.grid"] = False
 IQSample = Sequence[tuple[float, float]]
 DataFormat = Literal["real-imag", "magnitude-phase"]
 
+def to_superscript(num: int) -> str:
+    superscript_map = str.maketrans("0123456789-", "⁰¹²³⁴⁵⁶⁷⁸⁹⁻")
+    return str(num).translate(superscript_map)
 
 def get_scale_suffix(value: float) -> tuple[float, str]:
     """
@@ -44,7 +47,8 @@ def get_scale_suffix(value: float) -> tuple[float, str]:
         return 1.0, "×10⁰"
     exponent = int(math.floor(math.log10(abs(value))))
     scale = 10 ** (exponent // 3 * 3)
-    suffix = f"×10^{int(math.log10(scale))}" if scale != 1 else ""
+    superscript = to_superscript(int(math.log10(scale)))
+    suffix = f"×10{superscript}" if scale != 1 else ""
     return scale, suffix or "×10⁰"
 
 
@@ -89,10 +93,16 @@ def scatterplot(iq: IQSample, data_format: DataFormat, grids: bool = False, inte
     """
     a_data, b_data = process_data(iq, data_format)
 
+    background_color = "white"
+    text_color = "black"
+
     fig, ax = plt.subplots(dpi=300)
-    fig.set_facecolor("black")
-    ax.set_facecolor("black")
-    ax.tick_params(axis="both", colors="white", pad=5)
+    fig.set_facecolor(background_color)
+    ax.set_facecolor(background_color)
+    ax.tick_params(axis="both", colors=text_color, pad=5)
+    labels_font_size = 10
+    title_font_size = 12
+    tick_font_size = 8
 
     if data_format == "real-imag":
         max_val = max(max(abs(x) for x in a_data), max(abs(y) for y in b_data))
@@ -101,17 +111,51 @@ def scatterplot(iq: IQSample, data_format: DataFormat, grids: bool = False, inte
         a_scaled = np.array(a_data) / scale
         b_scaled = np.array(b_data) / scale
 
-        ax.scatter(a_scaled, b_scaled, s=0.1, c="white")
+        ax.scatter(a_scaled, b_scaled, s=0.1, c=text_color)
+        ax.tick_params(axis="both", labelsize=tick_font_size, colors=text_color, pad=5)
 
-        ax.set_xlim(b_scaled.min() * 1.1 - 2, b_scaled.max() * 1.1 + 2)
-        ax.set_ylim(a_scaled.min() * 1.1 - 2, a_scaled.max() * 1.1 + 2)
+        x_min = a_scaled.min() * 1.1 - 2
+        x_max = a_scaled.max() * 1.1 + 2
+        y_min = b_scaled.min() * 1.1 - 2
+        y_max = b_scaled.max() * 1.1 + 2
+
+        ax.set_xlim(x_min, x_max)
+        ax.set_ylim(y_min, y_max)
+
+        def round_to_pretty_step(val):
+            for step in [1, 2, 5, 10, 20, 50, 100]:
+                if val <= step:
+                    return step
+            return val
+
+        max_x_ticks = 9
+        max_y_ticks = 7
+        x_range = x_max - x_min
+        y_range = y_max - y_min
+
+        x_tick_step = round_to_pretty_step(round(x_range / (max_x_ticks - 1)))
+        y_tick_step = round_to_pretty_step(round(y_range / (max_y_ticks - 1)))
+
+        x_ticks = np.arange(
+            math.floor(x_min / x_tick_step) * x_tick_step,
+            math.ceil(x_max / x_tick_step) * x_tick_step + x_tick_step,
+            x_tick_step,
+        )
+        y_ticks = np.arange(
+            math.floor(y_min / y_tick_step) * y_tick_step,
+            math.ceil(y_max / y_tick_step) * y_tick_step + y_tick_step,
+            y_tick_step,
+        )
+
+        ax.set_xticks(x_ticks)
+        ax.set_yticks(y_ticks)
 
         if grids:
             ax.grid(True, color="gray", linestyle="--", linewidth=0.5)
 
-        ax.set_title("I/Q Scatter Plot (Real-Imag)", color="white", y=1.07)
-        ax.set_xlabel(f"I_data ({suffix})", color="white")
-        ax.set_ylabel(f"Q_data ({suffix})", color="white")
+        ax.set_title("I/Q Scatter Plot (Real-Imag)", color=text_color, y=1.07, fontsize=title_font_size)
+        ax.set_xlabel(f"I [{suffix}]", color=text_color, fontsize=labels_font_size)
+        ax.set_ylabel(f"Q [{suffix}]", color=text_color, fontsize=labels_font_size)
 
     elif data_format == "magnitude-phase":
         max_val = max(abs(m) for m in b_data)
@@ -119,18 +163,32 @@ def scatterplot(iq: IQSample, data_format: DataFormat, grids: bool = False, inte
         b_scaled = np.array(b_data) / scale
         a_array = np.array(a_data)
 
-        ax.scatter(a_array, b_scaled, s=0.1, c="lime")
+        ax.scatter(a_array, b_scaled, s=0.1, c=text_color)
+        ax.tick_params(axis="both", labelsize=tick_font_size, colors=text_color, pad=5)
 
         ax.set_xlim(-math.pi, math.pi)
-        ax.set_ylim(0, b_scaled.max() * 1.1)
+        y_min = 0
+        y_max = b_scaled.max() * 1.1
+        ax.set_ylim(y_min, y_max)
 
-        ax.set_xlabel("Phase (rad)", color="white")
-        ax.set_ylabel(f"Magnitude ({suffix})", color="white")
+        x_ticks = np.arange(-4, 5, 1)
+        ax.set_xticks(x_ticks)
+        ax.set_xticklabels([f"{int(round(x))}" for x in x_ticks], color=text_color)
+
+        y_tick_step = 10
+        y_ticks = np.arange(
+            math.floor(y_min / y_tick_step) * y_tick_step,
+            math.ceil(y_max / y_tick_step) * y_tick_step + y_tick_step,
+            y_tick_step,
+        )
+        ax.set_yticks(y_ticks)
 
         if grids:
             ax.grid(True, color="gray", linestyle="--", linewidth=0.5)
 
-        ax.set_title("I/Q Scatter Plot (Magnitude-Phase)", color="white", y=1.07)
+        ax.set_title("I/Q Scatter Plot (Magnitude-Phase)", color=text_color, y=1.07, fontsize=title_font_size)
+        ax.set_xlabel("Phase [rad]", color=text_color, fontsize=labels_font_size)
+        ax.set_ylabel(f"Magnitude [{suffix}]", color=text_color, fontsize=labels_font_size)
 
     plt.tight_layout()
     if interactive_plots:

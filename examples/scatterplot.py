@@ -1,24 +1,14 @@
-from pathlib import Path
-
 import libiq
 import libiq.plotter.scatterplot as scplt
-from libiq.utils.constants import (
-    CNN_MODEL_PATH,
-    CSV_FILE_PATH,
-    LABELS,
-    PLOTS_PATH,
-    REPORT_PATH,
-)
+from libiq.utils.constants import PLOTS_PATH
 
-LIBRARY_PATH = f"{Path('../').resolve()}/libiq"
-
-input_file_path = f"{LIBRARY_PATH}/examples/test_results/iq_samples/combined_output.csv"
+input_file_path = "docs/sample_data/sample.bin"
 
 analyzer = libiq.Analyzer()
 
 data_type = libiq.IQDataType.INT16.value
 
-diff = 10000000  # max value = 2147483647
+diff = 100000  # max value = 2147483647
 start = 0
 end = start + diff
 

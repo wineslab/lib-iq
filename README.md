@@ -27,7 +27,7 @@ It is structured into four main classes:
 - Classifier  
   Contains methods to train and test a lightweight CNN model for RF signal classification. It uses real/imaginary parts, magnitude, and phase as input features.
 
-Libiq has been successfully tested with python 3.9, 3.10,  3.11 and 3.12.
+Libiq has been successfully tested with python 3.9, 3.10,  3.11, 3.12 and 3.13.
 
 If you use the libiq library to develop your own works, please cite the following paper:
 

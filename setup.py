@@ -53,7 +53,7 @@ module = Extension(
 setup(
     name="libiq",
     version=version,
-    python_requires=">=3.9,<3.13",
+    python_requires=">=3.9",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     ext_modules=[module],
